@@ -1,16 +1,46 @@
-<html>
-<body>
-  <h1>Detail View</h1>
-  <dl>
-    <dt>Started</dt>
-    <dd>{{ time.start }}</dd>
+{% extends "base.html" %}
 
-    <dt>Finish Time</dt>
-    <dd>{{ time.start }}</dd>
-  </dl>
-  <div class="panel">
+{% block content %}
+<div class="col-md-10 col-md-offset-1">
+  <h1 class="text-center">Detail View</h1>
 
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <h3 class="panel-title">Summary</h3>
+    </div>
+    <div class="panel-body">
+      <dl class="dl-horizontal">
+        <dt>Started</dt>
+        <dd>{{ time.start }}</dd>
+
+        <dt>Finish Time</dt>
+        <dd>{{ time.end }}</dd>
+
+        <dt>Lunch</dt>
+        <dd>{{ time.lunch }} mins</dd>
+
+        <dt>Time Worked</dt>
+        <dd>{{ time.hours_worked | floatformat }} hrs</dd>
+      </dl>
+    </div>
   </div>
-</body>
-</html>
 
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Morning Activities</h3>
+    </div>
+    <div class="panel-body">
+      {{ time.morning }}
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Afternoon Activities</h3>
+    </div>
+    <div class="panel-body">
+      {{ time.afternoon }}
+    </div>
+  </div>
+</div>
+{% endblock %}
