@@ -2,11 +2,29 @@
 
 {% block content %}
 <h1>All Times</h1>
-<ul>
-  {% for time in times %}
-  <li>
-    <a href="{% url 'times:detail' time.id %}">{{ time }}</a>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Date</th>
+      <th>Start</th>
+      <th>Finish</th>
+      <th>Hours Worked</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for time in times|dictsortreversed:"start" %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href="{% url 'times:detail' time.id %}">{{ time.start|date }}</a>
+      </td>
+      <td>{{ time.start|time }}</td>
+      <td>{{ time.end|time }}</td>
+      <td>{{ time.hours_worked | floatformat }}</td>
+    </tr>
   </li>
   {% endfor %}
-</ul>
+</tbody>
+</table>
 {% endblock %}

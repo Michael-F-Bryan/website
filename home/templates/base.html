@@ -28,6 +28,9 @@
             <li>
               <a href="{% url 'times:list_all' %}">Times</a>
             </li>
+            {% if request.user.is_authenticated %}
+            <li><a href="{% url 'admin:index' %}">Admin Section</a></li>
+            {% endif %}
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
