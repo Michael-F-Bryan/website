@@ -15,6 +15,17 @@
 
 {% block content %}
 <div class="jumbotron">
-  <h1 class="text-center headline">Michael's Timesheets</h1>
+  <h1 class="text-center headline">Nothing to see here, <br /> move along...</h1>
 </div>
+{% endblock %}
+
+{% block tail %}
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function () {
+    // Handler for .ready() called.
+    window.setTimeout(function () {
+        location.href = "https://www.google.com/";
+    }, 5000);
+});
+</script>
 {% endblock %}
