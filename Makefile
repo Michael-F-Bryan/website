@@ -13,8 +13,10 @@ update:
 	$(PYTHON) manage.py migrate
 
 reload: 
+	$(PYTHON) manage.py collectstatic
 	sudo cp "$(UNIT_FILE)" "$(UNIT_DIR)"
 	sudo systemctl daemon-reload
+	sudo systemctl restart nginx
 	sudo systemctl stop "$(UNIT_FILE)"
 	sudo systemctl start "$(UNIT_FILE)"
 
