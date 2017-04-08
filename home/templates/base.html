@@ -36,6 +36,7 @@
             </li>
             {% if request.user.is_authenticated %}
             <li><a href="{% url 'admin:index' %}">Admin Section</a></li>
+            <li><a href="/api/">API</a></li>
             {% endif %}
           </ul>
 

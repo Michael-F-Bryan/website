@@ -16,6 +16,14 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+from rest_framework import routers
+
+from times.views import TimeViewSet
+
+router = routers.DefaultRouter()
+router.register(r'times', TimeViewSet)
+
 
 
 urlpatterns = [
@@ -23,5 +31,7 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, {'template_name': 'home/login.html'}, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
     url(r'^admin/', admin.site.urls),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api/', include(router.urls)),
     url(r'', include('home.urls', namespace='home')),
 ]

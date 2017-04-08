@@ -6,7 +6,7 @@ Before=nginx.service
 [Service]
 WorkingDirectory=/home/michael/website/
 Restart=always
-User=http
+User=michael
 ExecStart=/usr/local/bin/gunicorn                         \
           --workers 4                                     \
           --bind=127.0.0.1:8000                           \

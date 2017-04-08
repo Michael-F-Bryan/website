@@ -8,9 +8,11 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.decorators.cache import never_cache
+from rest_framework import viewsets
 
 from .models import Time
 from .forms import TimeForm
+from .serializers import TimeSerializer
 
 
 @login_required
@@ -100,5 +102,14 @@ def download_as_csv(request):
         writer.writerow(values)
 
     return response
+
+
+class TimeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint which allows timesheet entries to be viewed or edited.
+    """
+
+    queryset = Time.objects.all()
+    serializer_class = TimeSerializer
 
 

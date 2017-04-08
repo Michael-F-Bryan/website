@@ -2,9 +2,13 @@ dist_zip := $(shell mktemp -u).zip
 PYTHON := python3
 UNIT_FILE := website.service
 UNIT_DIR := /etc/systemd/system
+dependencies := django gunicorn djangorestframework
+
+install:
+	pip3 install --upgrade $(dependencies)
 
 update:
-	git pull --rebase --autostash
+	git pull --rebase
 	$(PYTHON) manage.py makemigrations
 	$(PYTHON) manage.py migrate
 
