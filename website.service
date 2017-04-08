@@ -6,9 +6,8 @@ Before=nginx.service
 [Service]
 WorkingDirectory=/home/michael/website/
 Restart=always
+User=http
 ExecStart=/usr/local/bin/gunicorn                         \
-          --group http                                    \
-          --user http                                     \
           --workers 4                                     \
           --bind=127.0.0.1:8000                           \
           --error-logfile=/var/log/website_errors.log     \
