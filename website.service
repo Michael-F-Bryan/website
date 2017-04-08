@@ -10,7 +10,7 @@ User=http
 ExecStart=/usr/local/bin/gunicorn                         \
           --workers 4                                     \
           --bind=127.0.0.1:8000                           \
-          wsgi:application
+          website.wsgi:application
 
 [Install]
 WantedBy=multi-user.target

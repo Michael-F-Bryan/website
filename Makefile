@@ -11,7 +11,8 @@ update:
 reload: 
 	sudo cp "$(UNIT_FILE)" "$(UNIT_DIR)"
 	sudo systemctl daemon-reload
-	sudo systemctl restart "$(UNIT_FILE)"
+	sudo systemctl stop "$(UNIT_FILE)"
+	sudo systemctl start "$(UNIT_FILE)"
 
 zip: clean
 	zip -v -r "$(dist_zip)" .
