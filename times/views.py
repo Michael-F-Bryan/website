@@ -36,3 +36,18 @@ class TimeEdit(View):
             return redirect('times:list_all')
 
         return render(request, self.template_name, {'form': form})
+
+class NewTime(View):
+    template_name =  'times/edit.html'
+
+    def get(self, request):
+        return render(request, 'times/new.html', {'form': TimeForm()})
+
+    def post(self, request):
+        form = TimeForm(request.POST)
+
+        if form.is_valid():
+            time = form.save()
+            return redirect('times:detail', time_id=time.id)
+
+        return render(request, self.template_name, {'form': form})

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>All Times</h1>
-<a href="{% url 'times:edit' 1 %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a>
+<h1>All Times
+    <a href="{% url 'times:new' %}" class="top-menu"><span class="text-muted small glyphicon glyphicon-plus"></span></a>
+</h1>
 
 <table class="table table-hover">
   <thead>
