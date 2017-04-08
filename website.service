@@ -5,8 +5,8 @@ Before=nginx.service
 
 [Service]
 WorkingDirectory=/home/michael/website/
-Restart=restart-always
-ExecStart=gunicorn                                        \
+Restart=always
+ExecStart=/usr/local/bin/gunicorn                         \
           --group http                                    \
           --user http                                     \
           --workers 4                                     \
