@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views import View
@@ -25,4 +25,14 @@ class TimeEdit(View):
     def get(self, request, time_id):
         time = get_object_or_404(Time, pk=time_id)
         form = TimeForm(instance=time)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, time_id):
+        time = get_object_or_404(Time, pk=time_id)
+        form = TimeForm(request.POST or None, instance=time)
+
+        if form.is_valid():
+            form.save()
+            return redirect('times:list_all')
+
         return render(request, self.template_name, {'form': form})

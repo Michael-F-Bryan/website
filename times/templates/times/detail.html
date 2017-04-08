@@ -4,11 +4,8 @@
 <style type="text/css" media="screen">
 .icon {  
     background-color: transparent;
-    border-color: #CCCCCC;
-    color: #333333;
  }
 .icon:hover {
-   border-color: #fff;
    color: #333333;
 }
 </style>
@@ -17,9 +14,7 @@
 {% block content %}
 <div class="col-md-10 col-md-offset-1">
     <h1 class="text-center">Detail View
-        <a href="{% url 'times:edit' time.id %}">
-            <span class="icon small glyphicon glyphicon-pencil"></span>
-        </a>
+        <a href="{% url 'times:edit' time.id %}"><span class="icon small glyphicon glyphicon-pencil"></span></a>
         <span class="icon small glyphicon glyphicon-trash"></span>
     </h1>
 
@@ -49,7 +44,7 @@
       <h3 class="panel-title">Morning Activities</h3>
     </div>
     <div class="panel-body">
-      {{ time.morning }}
+      {{ time.morning_task }}
     </div>
   </div>
 
@@ -58,7 +53,7 @@
       <h3 class="panel-title">Afternoon Activities</h3>
     </div>
     <div class="panel-body">
-      {{ time.afternoon }}
+      {{ time.afternoon_task }}
     </div>
   </div>
 </div>
