@@ -27,11 +27,14 @@ def list_all(request):
 
     summary['Total Days'] = len(times)
     summary['Total Hours'] =  sum(t.hours_worked() for t in times)
-    summary['Average Work Day'] =  summary['Total Hours']/summary['Total Days']
+    if summary['Total Hours'] > 0:
+        summary['Average Work Day'] = summary['Total Hours']/summary['Total Days']
+    else:
+        summary['Average Work Day'] = 0
 
     context = {
-        'times': times,
-        'summary': summary,
+        'times': times, 
+        'summary': summary
     }
     return render(request, 'times/list_all.html', context)
 
