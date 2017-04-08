@@ -10,9 +10,7 @@ User=http
 ExecStart=/usr/local/bin/gunicorn                         \
           --workers 4                                     \
           --bind=127.0.0.1:8000                           \
-          --error-logfile=/var/log/website_errors.log     \
           wsgi:application
 
 [Install]
-# When should this service be triggered? (this is the equivalent of SysV's runlevel 3)
 WantedBy=multi-user.target
