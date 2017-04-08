@@ -1,6 +1,7 @@
 import datetime
 import csv
 from io import StringIO
+from collections import OrderedDict
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
@@ -21,7 +22,18 @@ def detail(request, time_id):
 @login_required
 def list_all(request):
     times = Time.objects.all()
-    return render(request, 'times/list_all.html', {'times': times})
+
+    summary = OrderedDict()
+
+    summary['Total Days'] = len(times)
+    summary['Total Hours'] =  sum(t.hours_worked() for t in times)
+    summary['Average Work Day'] =  summary['Total Hours']/summary['Total Days']
+
+    context = {
+        'times': times,
+        'summary': summary,
+    }
+    return render(request, 'times/list_all.html', context)
 
 
 class TimeEdit(View):

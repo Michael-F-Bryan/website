@@ -12,10 +12,24 @@
 {% endblock %}
 
 {% block content %}
-<h1>All Times
+<h1>Overview
   <a href="{% url 'times:new' %}" class="top-menu"><span class="text-muted small glyphicon glyphicon-plus"></span></a>
   <a href="{% url 'times:download' %}"><span class="text-muted small glyphicon glyphicon-download"></span></a>
 </h1>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h2 class="panel-title">Summary</h2>
+  </div>
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      {% for key, value in summary.items %}
+      <dt>{{ key }}</dt>
+      <dd>{{ value | floatformat }}</dd>
+      {% endfor %}
+    </dl>
+  </div>
+</div>
 
 <table class="table table-hover">
   <thead>
