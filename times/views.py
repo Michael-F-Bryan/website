@@ -1,8 +1,12 @@
 import datetime
+import csv
+from io import StringIO
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views import View
+from django.views.decorators.cache import never_cache
 
 from .models import Time
 from .forms import TimeForm
@@ -65,3 +69,21 @@ def delete(request, time_id):
     time = get_object_or_404(Time, pk=time_id)
     time.delete()
     return redirect('times:list_all')
+
+@login_required
+@never_cache
+def download_as_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="timesheet.csv"'
+
+    writer = csv.writer(response, dialect='excel')
+    writer.writerow(['Start', 'End', 'Hours Worked'])
+
+    headings = ['start', 'end', 'hours_worked']
+    for time in Time.objects.all():
+        values = [time.__get_attribute__(heading) for heading in headings]
+        writer.writerow(values)
+
+    return response
+
+
