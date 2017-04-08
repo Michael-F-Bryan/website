@@ -4,13 +4,13 @@ server {
 
         server_name _;
 
-        location / {
-                proxy_pass http://localhost:8000/;
-        }
-
         location /static/ {
           autoindex on;
           root /home/michael/website/static/;
+        }
+
+        location / {
+                proxy_pass http://localhost:8000/;
         }
   }
 
