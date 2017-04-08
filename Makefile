@@ -2,6 +2,8 @@ dist_zip := $(shell mktemp -u).zip
 PYTHON := python3
 UNIT_FILE := website.service
 UNIT_DIR := /etc/systemd/system
+NGINX_DIR := /etc/nginx
+SITE := michaelfbryan.com
 dependencies := django gunicorn djangorestframework
 
 install:
@@ -15,6 +17,8 @@ update:
 reload: 
 	$(PYTHON) manage.py collectstatic
 	sudo cp "$(UNIT_FILE)" "$(UNIT_DIR)"
+	sudo cp "$(SITE)" "$(NGINX_DIR)/sites-available/$(SITE)"
+	sudo ln -s "$(NGINX_DIR)/sites-available/$(SITE)" "$(NGINX_DIR)/sites-enabled/$(SITE)"
 	sudo systemctl daemon-reload
 	sudo systemctl restart nginx
 	sudo systemctl stop "$(UNIT_FILE)"
