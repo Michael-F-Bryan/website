@@ -15,10 +15,10 @@ update:
 	$(PYTHON) manage.py migrate
 
 reload: 
-	$(PYTHON) manage.py collectstatic
+	echo 'yes' | $(PYTHON) manage.py collectstatic
 	sudo cp "$(UNIT_FILE)" "$(UNIT_DIR)"
 	sudo cp "$(SITE)" "$(NGINX_DIR)/sites-available/$(SITE)"
-	sudo ln -s "$(NGINX_DIR)/sites-available/$(SITE)" "$(NGINX_DIR)/sites-enabled/$(SITE)"
+	sudo ln --symbolic --force "$(NGINX_DIR)/sites-available/$(SITE)" "$(NGINX_DIR)/sites-enabled/$(SITE)"
 	sudo systemctl daemon-reload
 	sudo systemctl restart nginx
 	sudo systemctl stop "$(UNIT_FILE)"
