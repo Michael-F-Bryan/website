@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -41,7 +42,14 @@ class NewTime(View):
     template_name =  'times/edit.html'
 
     def get(self, request):
-        return render(request, 'times/new.html', {'form': TimeForm()})
+        initial_data = {
+            'start': datetime.datetime.now(),
+            'end': datetime.datetime.now() + datetime.timedelta(hours=8),
+            'lunch': 0,
+        }
+
+        form = TimeForm(initial_data)
+        return render(request, 'times/new.html', {'form': form})
 
     def post(self, request):
         form = TimeForm(request.POST)
@@ -51,3 +59,9 @@ class NewTime(View):
             return redirect('times:detail', time_id=time.id)
 
         return render(request, self.template_name, {'form': form})
+
+@login_required
+def delete(request, time_id):
+    time = get_object_or_404(Time, pk=time_id)
+    time.delete()
+    return redirect('times:list_all')

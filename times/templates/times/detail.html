@@ -15,7 +15,7 @@
 <div class="col-md-10 col-md-offset-1">
     <h1 class="text-center">Detail View
         <a href="{% url 'times:edit' time.id %}"><span class="icon small glyphicon glyphicon-pencil"></span></a>
-        <span class="icon small glyphicon glyphicon-trash"></span>
+        <a href="{% url 'times:delete' time.id %}"><span class="icon small glyphicon glyphicon-trash"></span></a>
     </h1>
 
   <div class="panel panel-success">

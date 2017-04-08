@@ -1,8 +1,19 @@
 {% extends "base.html" %}
 
+{% block head %}
+<style type="text/css" media="screen">
+  .control-icons {
+    display: none;
+  }
+  tr:hover .control-icons {
+    display: block;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1>All Times
-    <a href="{% url 'times:new' %}" class="top-menu"><span class="text-muted small glyphicon glyphicon-plus"></span></a>
+  <a href="{% url 'times:new' %}" class="top-menu"><span class="text-muted small glyphicon glyphicon-plus"></span></a>
 </h1>
 
 <table class="table table-hover">
@@ -24,7 +35,12 @@
       </td>
       <td>{{ time.start|time }}</td>
       <td>{{ time.end|time }}</td>
-      <td>{{ time.hours_worked | floatformat }}</td>
+      <td>{{ time.hours_worked | floatformat }} 
+        <div class="control-icons pull-right">
+          <a href="{% url 'times:edit' time.id %}"><span class="icon small glyphicon glyphicon-pencil"></span></a>
+          <a href="{% url 'times:delete' time.id %}"><span class="icon small glyphicon glyphicon-trash"></span></a>
+        </div>
+      </td>
     </tr>
   </li>
   {% endfor %}
