@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center">Edit Time</h1>
+
+<div class="col-md-8 col-md-offset-2">
+  <form class="form-horizontal" method="post">
+    <div class="form-group">
+      <button type="submit" class="btn btn-info">Save</button>
+    </div>
+
+    {{ form.as_table }}
+    {% csrf_token %}
+  </form>
+</div>
+{% endblock %}
