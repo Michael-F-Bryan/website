@@ -1,0 +1,10 @@
+---
+- name: "Install Nginx and Django"
+  vars:
+    - domain: "michaelfbryan.com"
+  hosts: all
+  remote_user: root
+  roles:
+    - common
+    - nginx
+

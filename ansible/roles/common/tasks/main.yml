@@ -1,0 +1,11 @@
+---
+- name: "Create nobody group"
+  group:
+    name: nobody
+
+- name: "Add www-data user"
+  user: 
+    name: www-data
+    shell: /bin/true
+    groups: nobody
+
