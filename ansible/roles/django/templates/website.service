@@ -4,9 +4,9 @@ Requires=nginx.service
 Before=nginx.service
 
 [Service]
-WorkingDirectory=/home/michael/website/
+WorkingDirectory=/var/www/{{ domain }}
 Restart=always
-User=michael
+User=www-data
 ExecStart=/usr/local/bin/gunicorn                         \
           --workers 4                                     \
           --bind=127.0.0.1:8000                           \

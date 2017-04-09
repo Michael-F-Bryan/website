@@ -1,0 +1,29 @@
+---
+
+- name: "Check out the website repository"
+  git: 
+    repo: "https://github.com/Michael-F-Bryan/website"
+    dest: "/var/www/{{ domain }}" 
+    clone: yes
+    update: yes
+    accept_hostkey: yes
+    force: yes
+  notify:
+    - Run Migrations
+    - Restart Gunicorn
+
+- name: "Website directory Permissions"
+  when: nginxinstalled|success
+  file: dest="/var/www/{{ domain }}" mode=u=rwX,g=r state=directory owner=www-data group=www-data recurse=yes
+
+- name: "Make sure pip is installed"
+  apt: pkg=python-pip state=installed update_cache=true
+
+- name: "Install Python dependencies"
+  pip: requirements="/var/www/{{ domain }}/requirements.txt" state=present 
+
+- name: "Copy across Systemd service file"
+  template: src="website.service" dest=/etc/systemd/system owner=root group=root 
+  notify:
+    - Reload Systemd
+    - Restart Gunicorn

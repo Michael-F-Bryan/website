@@ -1,0 +1,14 @@
+---
+- name: "Restart Gunicorn"
+  service: name=website state=restarted
+
+- name: "Reload Systemd"
+  systemd: daemon_reload=yes
+
+- name: "Run Migrations"
+  shell: |
+    ./manage.py makemigrations 
+    ./manage.py migrate
+    ./manage.py collectstatic -v0 --no-input
+  args: 
+    chdir: /var/www/{{ domain }}

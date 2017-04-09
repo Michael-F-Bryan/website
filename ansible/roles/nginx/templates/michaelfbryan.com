@@ -9,8 +9,8 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Host $server_name;
 
-        location /static {
-          alias /var/www/{{ domain }};
+        location /static/ {
+          alias /var/www/{{ domain }}/static/;
           expires 30d;
         }
 
