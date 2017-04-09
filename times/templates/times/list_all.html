@@ -48,8 +48,14 @@
       <td>
         <a href="{% url 'times:detail' time.id %}">{{ time.start|date }}</a>
       </td>
-      <td>{{ time.start|time }}</td>
-      <td>{{ time.end|time }}</td>
+      <td>{{ time.start|localtime }}</td>
+      <td>
+            {% if time.end is None %}
+            -
+            {% else %}
+            {{ time.end|localtime }}
+            {% endif %}
+    </td>
       <td>{{ time.hours_worked | floatformat }} 
         <div class="control-icons pull-right">
           <a href="{% url 'times:edit' time.id %}"><span class="icon small glyphicon glyphicon-pencil"></span></a>
