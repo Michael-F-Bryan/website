@@ -1,14 +1,20 @@
 ---
 - name: "Restart Gunicorn"
-  service: name=website state=restarted
-
-- name: "Reload Systemd"
-  systemd: daemon_reload=yes
+  service: name=website daemon_reload=yes state=restarted
 
 - name: "Run Migrations"
-  shell: |
-    ./manage.py makemigrations 
-    ./manage.py migrate
-    ./manage.py collectstatic -v0 --no-input
-  args: 
-    chdir: /var/www/{{ domain }}
+  django_manage: 
+    command: migrate
+    app_path: "/var/www/{{ domain }}"
+
+- name: "Collect Static Assets"
+  django_manage:
+    command: "collectstatic -v0 --no-input"
+    app_path: "/var/www/{{ domain }}"
+
+- name: "Bootstrap Database"
+  django_manage:
+    command: loaddata
+    app_path: "/var/www/{{ domain }}"
+    fixtures: "/var/www/{{ domain }}/ansible/roles/django/templates/initial_data.json"
+
