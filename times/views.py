@@ -28,7 +28,7 @@ def list_all(request):
     summary = OrderedDict()
 
     summary['Total Days'] = len(times)
-    summary['Total Hours'] =  sum(t.hours_worked() for t in times)
+    summary['Total Hours'] =  sum(t.hours_worked for t in times)
     if summary['Total Hours'] > 0:
         summary['Average Work Day'] = summary['Total Hours']/summary['Total Days']
     else:

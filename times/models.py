@@ -12,6 +12,7 @@ class Time(models.Model):
     def __str__(self):
         return 'Timesheet Entry: {}'.format(self.start.strftime('%x'))
 
+    @property
     def hours_worked(self):
         try:
             duration = self.end - self.start - timedelta(minutes=self.lunch)
