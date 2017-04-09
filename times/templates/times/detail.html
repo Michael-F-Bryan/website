@@ -25,14 +25,14 @@
     <div class="panel-body">
       <dl class="dl-horizontal">
         <dt>Started</dt>
-        <dd>{{ time.start|localtime }}</dd>
+        <dd>{{ time.start|time }}</dd>
 
         <dt>Finish Time</dt>
         <dd>
             {% if time.end is None %}
             N/A
             {% else %}
-            {{ time.end|localtime }}
+            {{ time.end|time }}
             {% endif %}
         </dd>
 
