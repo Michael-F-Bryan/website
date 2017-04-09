@@ -13,7 +13,10 @@ class Time(models.Model):
         return 'Timesheet Entry: {}'.format(self.start.strftime('%x'))
 
     def hours_worked(self):
-        duration = self.end - self.start - timedelta(minutes=self.lunch)
-        return duration.total_seconds() / 3600
+        try:
+            duration = self.end - self.start - timedelta(minutes=self.lunch)
+            return duration.total_seconds() / 3600
+        except TypeError:
+            return 0
 
 
