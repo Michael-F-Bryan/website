@@ -98,7 +98,7 @@ def download_as_csv(request):
 
     headings = ['start', 'end', 'hours_worked']
     for time in Time.objects.all():
-        values = [time.__get_attribute__(heading) for heading in headings]
+        values = [time.__getattribute__(heading) for heading in headings]
         writer.writerow(values)
 
     return response
