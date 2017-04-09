@@ -9,7 +9,6 @@
     accept_hostkey: yes
     force: yes
   notify:
-    - Bootstrap Database
     - Run Migrations
     - Restart Gunicorn
 

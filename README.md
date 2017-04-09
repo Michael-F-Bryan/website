@@ -21,3 +21,10 @@ This should:
 
 > **Note:** Because ansible uses `python2` by default, you'll need to make sure
 > to have that installed on the remote machine.
+
+> **WARNING:** At the moment you'll still need to create a superuser the first
+> time you provision a server.
+>
+> ```
+> ./manage.py createsuperuser
+> ```

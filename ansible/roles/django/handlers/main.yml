@@ -12,9 +12,3 @@
     command: "collectstatic -v0 --no-input"
     app_path: "/var/www/{{ domain }}"
 
-- name: "Bootstrap Database"
-  django_manage:
-    command: loaddata
-    app_path: "/var/www/{{ domain }}"
-    fixtures: "/var/www/{{ domain }}/ansible/roles/django/templates/initial_data.json"
-
