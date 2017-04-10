@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from datetime import timedelta
 
@@ -8,6 +9,8 @@ class Time(models.Model):
 
     morning_task = models.TextField(blank=True, null=True)
     afternoon_task = models.TextField(blank=True, null=True)
+
+    user = models.ForeignKey(User, unique=False)
 
     def __str__(self):
         return 'Timesheet Entry: {}'.format(self.start.strftime('%x'))
