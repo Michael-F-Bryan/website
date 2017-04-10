@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 
-from .models import Time
+from .models import Time, TimeSlice
 
 
 class BootstrapModelForm(ModelForm):
@@ -19,3 +19,8 @@ class TimeForm(BootstrapModelForm):
         fields = ('start', 'end', 'lunch', 'morning_task', 'afternoon_task')
 
 
+class TimeSliceForm(BootstrapModelForm):
+
+    class Meta:
+        model = TimeSlice 
+        fields = ('start', 'end', 'user')

@@ -4,14 +4,14 @@ from io import StringIO
 from collections import OrderedDict
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets
 
 from .models import Time
-from .forms import TimeForm
+from .forms import TimeForm, TimeSliceForm
 from .serializers import TimeSerializer
 
 
@@ -116,4 +116,25 @@ class TimeViewSet(viewsets.ModelViewSet):
     queryset = Time.objects.all()
     serializer_class = TimeSerializer
 
+class CreateTimeSlice(View):
+    template_name =  'times/new_time_slice.html'
 
+    def get(self, request):
+        now = datetime.datetime.now()
+        initial_data = {'start': now, 'end': now, 'user': request.user}
+
+        form = TimeSliceForm(initial=initial_data)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = TimeSliceForm(request.POST)
+
+        if form.is_valid():
+            time_slice = form.save()
+            return redirect('times:slice', hash=time_slice.unique_id.hex)
+
+        return render(request, self.template_name, {'form': form})
+
+@login_required
+def slice(request, hash):
+    raise Http404('TODO: Serve up the actual slice')

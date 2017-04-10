@@ -1,3 +1,5 @@
+import uuid 
+
 from django.contrib.auth.models import User
 from django.db import models
 from datetime import timedelta
@@ -23,4 +25,12 @@ class Time(models.Model):
         except TypeError:
             return 0
 
+
+class TimeSlice(models.Model):
+    start = models.DateTimeField('Start Date')
+    end = models.DateTimeField('End Date')
+    user = models.ForeignKey(User, unique=False)
+
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    can_view_tasks = models.BooleanField(default=False)
 
