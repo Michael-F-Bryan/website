@@ -141,7 +141,6 @@ class CreateTimeSlice(View):
 
         return render(request, self.template_name, {'form': form})
 
-@login_required
 def slice(request, hash):
     time_slice = get_object_or_404(TimeSlice, unique_id=hash)
     return render(request, 'times/time_slice.html', {'slice': time_slice})
