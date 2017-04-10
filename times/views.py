@@ -124,7 +124,10 @@ class CreateTimeSlice(View):
 
     def get(self, request):
         now = datetime.datetime.now()
-        initial_data = {'start': now, 'end': now, 'user': request.user}
+        buffer = datetime.timedelta(hours=10)
+        initial_data = {'start': now - buffer, 
+                        'end': now + buffer, 
+                        'user': request.user}
 
         form = TimeSliceForm(initial=initial_data)
         return render(request, self.template_name, {'form': form})
