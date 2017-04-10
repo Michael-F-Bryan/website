@@ -13,8 +13,18 @@
 
 {% block content %}
 <h1>Overview
-    <a href="{% url 'times:new' %}" class="top-menu"><span class="text-muted icon small glyphicon glyphicon-plus"></span></a>
-  <a href="{% url 'times:download' %}" download><span class="text-muted small icon glyphicon glyphicon-download"></span></a>
+    <a href="{% url 'times:new' %}" class="top-menu"><span 
+            data-toggle="tooltip" 
+            title="Add Time"
+            class="text-muted icon small glyphicon glyphicon-plus"></span></a>
+    <a href="{% url 'times:download' %}" download><span 
+            data-toggle="tooltip"
+            title="Download as CSV"
+            class="text-muted small icon glyphicon glyphicon-download"></span></a>
+        <a href="{% url 'times:new_time_slice' %}"><span 
+                data-toggle="tooltip"
+                title="New Time Slice"
+                class="icon small glyphicon glyphicon-link"></span></a>
 </h1>
 
 <div class="panel panel-default">
