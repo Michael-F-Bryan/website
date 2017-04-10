@@ -62,4 +62,3 @@ class TimeSliceTest(TestCase):
         should_be = self.times[:1]
 
         self.assertEqual(got, should_be)
-

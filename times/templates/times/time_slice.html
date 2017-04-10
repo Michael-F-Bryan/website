@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Time Slice</h1>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Date</th>
+      <th>Start</th>
+      <th>Finish</th>
+      <th>Hours Worked</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for time in slice.times|dictsortreversed:"start" %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href="{% url 'times:detail' time.id %}">{{ time.start|date }}</a>
+      </td>
+      <td>{{ time.start|time }}</td>
+      <td>
+        {% if time.end is None %}
+        -
+        {% else %}
+        {{ time.end|time }}
+        {% endif %}
+      </td>
+      <td>{{ time.hours_worked | floatformat }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
