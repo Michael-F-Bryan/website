@@ -87,11 +87,15 @@ def delete(request, time_id):
     time.delete()
     return redirect('times:list_all')
 
+def gen_filename(date):
+    return 'timesheet_{}.csv'.format(date.strftime('%Y-%m-%d'))
+
 @login_required
 @never_cache
 def download_as_csv(request):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="timesheet.csv"'
+    filename = gen_filename(datetime.datetime.now())
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
 
     writer = csv.writer(response, dialect='excel')
     writer.writerow(['Start', 'End', 'Hours Worked'])
