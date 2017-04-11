@@ -77,10 +77,12 @@ class NewTime(View):
 
     def post(self, request):
         form = TimeForm(request.POST)
-        form.data['user'] = request.user.id
 
         if form.is_valid():
-            time = form.save()
+            time = form.save(commit=False)
+            time.user = request.user
+            time.save()
+
             return redirect('times:detail', time_id=time.id)
 
         return render(request, self.template_name, {'form': form})
