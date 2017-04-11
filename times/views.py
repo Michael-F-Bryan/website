@@ -77,6 +77,7 @@ class NewTime(View):
 
     def post(self, request):
         form = TimeForm(request.POST)
+        form.data['user'] = request.user.id
 
         if form.is_valid():
             time = form.save()
