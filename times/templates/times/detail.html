@@ -1,16 +1,35 @@
 {% extends "base.html" %}
 {% load markdown_filter %}
 
+
+{% block tail %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
+<script charset="utf-8">
+    function editTime(timeID) {
+        window.location.href = `/times/edit/${timeID}`;
+    }
+
+    function deleteTime(timeID) {
+        $("#yesBtn").attr("href", `/times/delete/${timeID}`);
+        $("#areYouSure").modal();
+    }
+
+Mousetrap.bind("e", e => editTime({{ time.id }}));
+Mousetrap.bind("d", e => deleteTime({{ time.id }}));
+</script>
+{% endblock %}
+
+
 {% block content %}
 <div class="col-md-10 col-md-offset-1">
     <h1 class="text-center">Detail View
-        <a href="{% url 'times:edit' time.id %}"><span 
+        <a onclick="editTime()"><span 
                 data-toggle="tooltip"
-                title="Edit"
+                title="Edit (e)"
                 class="icon small glyphicon glyphicon-pencil"></span></a>
-        <a href="{% url 'times:delete' time.id %}"><span 
+        <a onclick="deleteTime()"><span 
                 data-toggle="tooltip"
-                title="Delete"
+                title="Delete (d)"
                 class="icon small glyphicon glyphicon-trash"></span></a>
     </h1>
 
@@ -57,6 +76,28 @@
     <div class="panel-body">
       {{ time.afternoon_task|markdownify|safe }}
     </div>
+  </div>
+</div>
+
+<!-- "are you sure?" Modal -->
+<div id="areYouSure" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Delete</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the timesheet entry?</p>
+      </div>
+      <div class="modal-footer">
+          <a id="yesBtn" class="btn btn-default">Yes</a>
+        <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}
