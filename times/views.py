@@ -14,6 +14,22 @@ from .models import Time, TimeSlice
 from .forms import TimeForm, TimeSliceForm
 from .serializers import TimeSerializer
 
+def summarize(times):
+    """
+    Iterates through a list of `Times` and summarizes them.
+    """
+    summary = OrderedDict()
+
+    summary['Total Days'] = len(times)
+    summary['Total Hours'] =  sum(t.hours_worked for t in times)
+
+    if summary['Total Hours'] > 0:
+        summary['Average Work Day'] = summary['Total Hours']/summary['Total Days']
+    else:
+        summary['Average Work Day'] = 0
+
+    return summary
+
 
 @login_required
 def detail(request, time_id):
@@ -28,18 +44,9 @@ def detail(request, time_id):
 def list_all(request):
     times = Time.objects.filter(user=request.user)
 
-    summary = OrderedDict()
-
-    summary['Total Days'] = len(times)
-    summary['Total Hours'] =  sum(t.hours_worked for t in times)
-    if summary['Total Hours'] > 0:
-        summary['Average Work Day'] = summary['Total Hours']/summary['Total Days']
-    else:
-        summary['Average Work Day'] = 0
-
     context = {
         'times': times, 
-        'summary': summary
+        'summary': summarize(times),
     }
     return render(request, 'times/list_all.html', context)
 
@@ -87,14 +94,17 @@ class NewTime(View):
 
         return render(request, self.template_name, {'form': form})
 
+
 @login_required
 def delete(request, time_id):
     time = get_object_or_404(Time, pk=time_id)
     time.delete()
     return redirect('times:list_all')
 
+
 def gen_filename(date):
     return 'timesheet_{}.csv'.format(date.strftime('%Y-%m-%d'))
+
 
 @login_required
 @never_cache
@@ -122,6 +132,7 @@ class TimeViewSet(viewsets.ModelViewSet):
     queryset = Time.objects.all()
     serializer_class = TimeSerializer
 
+
 class CreateTimeSlice(View):
     template_name =  'times/new_time_slice.html'
 
@@ -144,6 +155,14 @@ class CreateTimeSlice(View):
 
         return render(request, self.template_name, {'form': form})
 
+
 def slice(request, hash):
     time_slice = get_object_or_404(TimeSlice, unique_id=hash)
-    return render(request, 'times/time_slice.html', {'slice': time_slice})
+    summary = summarize(time_slice.times())
+    context = {
+        'slice': time_slice,
+        'summary': summary,
+        'user': time_slice.user,
+    }
+
+    return render(request, 'times/time_slice.html', context)
