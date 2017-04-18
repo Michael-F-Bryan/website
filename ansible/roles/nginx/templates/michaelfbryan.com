@@ -2,6 +2,10 @@ server {
         listen 80 default_server;
         listen [::]:80 default_server;
 
+        listen 443 ssl;
+        ssl_certificate "/etc/nginx/ssl/bundle.crt";
+        ssl_certificate_key "/etc/nginx/ssl/michaelfbryan.com.key";
+
         server_name {{ domain }};
 
         proxy_set_header Host $host;
