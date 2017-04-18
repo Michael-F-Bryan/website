@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 
+{% block head %}
+<style type="text/css" media="screen">
+.hidden-hover {
+    display: none;
+}
+
+tr:hover .hidden-hover {
+    display: inline;
+}
+</style>
+{% endblock %}
+
+
 {% block tail %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
 <script charset="utf-8">
@@ -77,8 +90,8 @@ Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' 
     </td>
       <td>{{ time.hours_worked | floatformat }} 
         <div class="control-icons pull-right">
-            <a onclick="editTime({{ time.id }})"><span class="icon small glyphicon glyphicon-pencil"></span></a>
-            <a onclick="deleteTime({{ time.id }})"><span class="icon small glyphicon glyphicon-trash"></span></a>
+            <a onclick="editTime({{ time.id }})"><span class="hidden-hover small glyphicon glyphicon-pencil"></span></a>
+            <a onclick="deleteTime({{ time.id }})"><span class="hidden-hover small glyphicon glyphicon-trash"></span></a>
         </div>
       </td>
     </tr>
