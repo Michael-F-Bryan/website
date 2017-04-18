@@ -23,11 +23,11 @@ Mousetrap.bind("d", e => deleteTime({{ time.id }}));
 {% block content %}
 <div class="col-md-10 col-md-offset-1">
     <h1 class="text-center">Detail View
-        <a onclick="editTime()"><span 
+        <a onclick="editTime({{ time.id }})"><span 
                 data-toggle="tooltip"
                 title="Edit (e)"
                 class="icon small glyphicon glyphicon-pencil"></span></a>
-        <a onclick="deleteTime()"><span 
+        <a onclick="deleteTime({{ time.id }})"><span 
                 data-toggle="tooltip"
                 title="Delete (d)"
                 class="icon small glyphicon glyphicon-trash"></span></a>
