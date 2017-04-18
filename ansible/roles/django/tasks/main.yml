@@ -11,6 +11,7 @@
   notify:
     - Run Migrations
     - Restart Gunicorn
+    - Collect Static Assets
 
 - name: "Website directory Permissions"
   when: nginxinstalled|success
