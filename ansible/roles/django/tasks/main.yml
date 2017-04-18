@@ -1,5 +1,13 @@
 ---
 
+- name: "Create the logging directory"
+  file: 
+    dest: "/var/log/website" 
+    state: directory 
+    mode: u=rwX,a=r 
+    owner: www-data 
+    group: www-data 
+
 - name: "Check out the website repository"
   git: 
     repo: "https://github.com/Michael-F-Bryan/website"
