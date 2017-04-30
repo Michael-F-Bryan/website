@@ -198,7 +198,7 @@ LOGGING = {
             'propagate': True,
         },
         'django': {
-            'handlers': ['null'],
+            'handlers': ['console'],
         },
         'py.warnings': {
             'handlers': ['null'],
@@ -206,6 +206,7 @@ LOGGING = {
         '': {
             'handlers': ['console', 'production_file', 'debug_file'],
             'level': "DEBUG",
+            'propagate': True,
         },
     }
 }

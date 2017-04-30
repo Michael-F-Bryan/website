@@ -16,6 +16,7 @@ from .models import Time, TimeSlice
 from .forms import TimeForm, TimeSliceForm
 from .serializers import TimeSerializer
 
+logger = logging.getLogger(__name__)
 
 def summarize(times):
     """
@@ -39,13 +40,13 @@ def detail(request, time_id):
     time = get_object_or_404(Time, pk=time_id)
     if time.user != request.user and not request.is_superuser:
         peer_ip = get_real_ip(request)
-        logging.warning("Someone tried to access a timesheet entry they don't "
+        logger.warning("Someone tried to access a timesheet entry they don't "
                         "have permissions for (time_id=%d, ip=%s)", 
                         time_id, 
                         peer_ip or "UNKNOWN")
         return HttpResponseForbidden()
 
-    logging.info("User viewed timesheet entry (user=%s, time_id=%d)",
+    logger.info("User viewed timesheet entry (user=%s, time_id=%d)",
                  request.user, time_id)
 
     return render(request, 'times/detail.html', {'time': time})
@@ -54,7 +55,7 @@ def detail(request, time_id):
 @login_required
 def list_all(request):
     times = Time.objects.filter(user=request.user)
-    logging.info("User viewed all timesheet entries (user=%s)", request.user)
+    logger.info("User viewed all timesheet entries (user=%s)", request.user)
 
     context = {
         'times': times, 
@@ -77,7 +78,7 @@ class TimeEdit(View):
 
         if form.is_valid():
             form.save()
-            logging.info("User updated timesheet (user=%s, time_id=%d)", 
+            logger.info("User updated timesheet (user=%s, time_id=%d)", 
                          request.user, time_id)
             return redirect('times:list_all')
 
@@ -104,7 +105,7 @@ class NewTime(View):
             time.user = request.user
             time.save()
 
-            logging.info("Timesheet entry created by %s (time_id=%d)",
+            logger.info("Timesheet entry created by %s (time_id=%d)",
                          request.user,
                          time.id)
             return redirect('times:detail', time_id=time.id)
@@ -115,7 +116,7 @@ class NewTime(View):
 @login_required
 def delete(request, time_id):
     time = get_object_or_404(Time, pk=time_id)
-    logging.info("Timesheet entry deleted by %s (time_id=%d)",
+    logger.info("Timesheet entry deleted by %s (time_id=%d)",
                     request.user,
                     time.id)
     time.delete()
@@ -171,7 +172,7 @@ class CreateTimeSlice(View):
 
         if form.is_valid():
             time_slice = form.save()
-            logging.info("Timeslice created by %s (uuid=%s)", request.user,
+            logger.info("Timeslice created by %s (uuid=%s)", request.user,
                          time_slice.unique_id.hex)
             return redirect('times:slice', hash=time_slice.unique_id.hex)
 
@@ -187,7 +188,7 @@ def slice(request, hash):
         'user': time_slice.user,
     }
 
-    logging.info("Time slice viewed by %s (uuid=%s)", 
+    logger.info("Time slice viewed by %s (uuid=%s)", 
                  request.user or get_real_ip(request),
                  time_slice.unique_id.hex)
 
@@ -218,7 +219,7 @@ class TimeSliceEdit(View):
 
         if form.is_valid():
             form.save()
-            logging.info("Time slice updated by %s (uuid=%s)",
+            logger.info("Time slice updated by %s (uuid=%s)",
                          request.user,
                          ts.unique_id.hex)
             return redirect('times:time_slices')
@@ -228,7 +229,7 @@ class TimeSliceEdit(View):
 @login_required
 def delete_time_slice(request, hash):
     ts = get_object_or_404(TimeSlice, unique_id=hash)
-    logging.info("Time slice deleted by %s (uuid=%s)",
+    logger.info("Time slice deleted by %s (uuid=%s)",
                     request.user,
                     ts.unique_id.hex)
     ts.delete()
