@@ -7,11 +7,11 @@ Before=nginx.service
 WorkingDirectory=/var/www/{{ domain }}
 Restart=always
 User=www-data
-ExecStart=/usr/local/bin/gunicorn      \
-          --workers 4                  \
-          --bind=127.0.0.1:8000        \
-          --capture-output             \
-          --log-syslog                 \
+ExecStart=/usr/local/bin/gunicorn          \
+          --workers 4                      \
+          --bind=127.0.0.1:8000            \
+          --capture-output                 \
+          --log-file /var/log/website.log  \
           website.wsgi:application
 
 [Install]

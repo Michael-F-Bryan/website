@@ -1,13 +1,5 @@
 ---
 
-- name: "Create the logging directory"
-  file: 
-    dest: "/var/log/website" 
-    state: directory 
-    mode: u=rwX,a=r 
-    owner: www-data 
-    group: www-data 
-
 - name: "Check out the website repository"
   git: 
     repo: "https://github.com/Michael-F-Bryan/website"
@@ -31,5 +23,4 @@
 - name: "Copy across Systemd service file"
   template: src="website.service" dest=/etc/systemd/system owner=root group=root 
   notify:
-    - Reload Systemd
     - Restart Gunicorn
