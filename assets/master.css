@@ -4,3 +4,12 @@
 .icon:hover {
    color: #333333;
 }
+
+
+.hidden-hover {
+    visibility: hidden;
+}
+
+tr:hover .hidden-hover {
+    visibility: visible;
+}

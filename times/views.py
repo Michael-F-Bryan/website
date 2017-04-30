@@ -177,3 +177,29 @@ def all_time_slices(request):
         'slices': slices, 
     }
     return render(request, 'times/all_time_slices.html', context)
+
+
+class TimeSliceEdit(View):
+    template_name =  'times/edit_time_slice.html'
+
+    def get(self, request, hash):
+        ts = get_object_or_404(TimeSlice, unique_id=hash)
+        form = TimeSliceForm(instance=ts)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, hash):
+        ts = get_object_or_404(TimeSlice, unique_id=hash)
+        form = TimeSliceForm(request.POST or None, instance=ts)
+
+        if form.is_valid():
+            form.save()
+            return redirect('times:time_slices')
+
+        return render(request, self.template_name, {'form': form})
+
+@login_required
+def delete_time_slice(request, hash):
+    ts = get_object_or_404(TimeSlice, unique_id=hash)
+    ts.delete()
+    return redirect('times:time_slices')
+

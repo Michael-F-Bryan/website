@@ -2,20 +2,13 @@
 
 
 {% block tail %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
-<script charset="utf-8">
-    function editTime(timeID) {
-        window.location.href = `/times/edit/${timeID}`;
-    }
+<script type="text/javascript" charset="utf-8">
+function deleteTimeSlice(hash) {
+    $("#yesBtn").attr("href", `/times/time-slice/${hash}/delete`);
+    $("#areYouSure").modal();
+}
 
-    function deleteTime(timeID) {
-        $("#yesBtn").attr("href", `/times/delete/${timeID}`);
-        $("#areYouSure").modal();
-    }
-
-//Mousetrap.bind("n", e => {window.location.href = "{% url 'times:new' %}"});
-//Mousetrap.bind("d", e => {window.location.href = "{% url 'times:download' %}"});
-Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' %}"});
+Mousetrap.bind("n", e => {window.location.href = "{% url 'times:new_time_slice' %}"});
 </script>
 {% endblock %}
 
@@ -24,8 +17,8 @@ Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' 
 <h1>Time Slice Overview
         <a href="{% url 'times:new_time_slice' %}"><span
                 data-toggle="tooltip"
-                title="New Time Slice (l)"
-                class="icon small glyphicon glyphicon-link"></span></a>
+                title="New Time Slice (n)"
+                class="icon small glyphicon glyphicon-plus"></span></a>
 </h1>
 
 <table class="table table-hover">
@@ -45,10 +38,37 @@ Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' 
       <td>{{ ts.end }}</td>
       <td>{{ ts.user }}</td>
       <td>{{ ts.times|length }}</td>
-      <td><a href="{% url 'times:slice' ts.unique_id.hex %}">{{ ts.unique_id }}</a></td>
+      <td><a href="{% url 'times:slice' ts.unique_id.hex %}">{{ ts.unique_id.hex|slice:":6" }}</a>
+        <div class="control-icons pull-right">
+          <a href="{% url 'times:slice_edit' ts.unique_id.hex %}"><span class="hidden-hover small glyphicon glyphicon-pencil"></span></a>
+            <a onclick="deleteTimeSlice('{{ ts.unique_id.hex }}')"><span class="hidden-hover small glyphicon glyphicon-trash"></span></a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+
+<!-- "are you sure?" Modal -->
+<div id="areYouSure" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Delete Timeslice</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the timeslice?</p>
+      </div>
+      <div class="modal-footer">
+          <a id="yesBtn" class="btn btn-default">Yes</a>
+        <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}
 

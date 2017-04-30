@@ -1,31 +1,8 @@
 {% extends "base.html" %}
 
 
-{% block head %}
-<style type="text/css" media="screen">
-.hidden-hover {
-    display: none;
-}
-
-tr:hover .hidden-hover {
-    display: inline;
-}
-</style>
-{% endblock %}
-
-
 {% block tail %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
 <script charset="utf-8">
-    function editTime(timeID) {
-        window.location.href = `/times/${timeID}/edit`;
-    }
-
-    function deleteTime(timeID) {
-        $("#yesBtn").attr("href", `/times/${timeID}/delete`);
-        $("#areYouSure").modal();
-    }
-
 Mousetrap.bind("n", e => {window.location.href = "{% url 'times:new' %}"});
 Mousetrap.bind("d", e => {window.location.href = "{% url 'times:download' %}"});
 Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' %}"});
