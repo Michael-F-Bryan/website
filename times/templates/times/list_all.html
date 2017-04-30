@@ -18,11 +18,11 @@ tr:hover .hidden-hover {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
 <script charset="utf-8">
     function editTime(timeID) {
-        window.location.href = `/times/edit/${timeID}`;
+        window.location.href = `/times/${timeID}/edit`;
     }
 
     function deleteTime(timeID) {
-        $("#yesBtn").attr("href", `/times/delete/${timeID}`);
+        $("#yesBtn").attr("href", `/times/${timeID}/delete`);
         $("#areYouSure").modal();
     }
 

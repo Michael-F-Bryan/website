@@ -27,8 +27,13 @@
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li>
-              <a href="{% url 'times:list_all' %}">Timesheet</a>
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Timesheet 
+                    <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="{% url 'times:list_all' %}">Times</a></li>
+                    <li><a href="{% url 'times:time_slices' %}">Time Slices</a></li>
+                </ul>
             </li>
             <li>
               <a href="https://michael-f-bryan.github.io/rust-ffi-guide/" target="_blank">FFI Tutorial</a>
