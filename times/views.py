@@ -14,6 +14,7 @@ from .models import Time, TimeSlice
 from .forms import TimeForm, TimeSliceForm
 from .serializers import TimeSerializer
 
+
 def summarize(times):
     """
     Iterates through a list of `Times` and summarizes them.
@@ -166,3 +167,13 @@ def slice(request, hash):
     }
 
     return render(request, 'times/time_slice.html', context)
+
+
+@login_required
+def all_time_slices(request):
+    slices = TimeSlice.objects.filter(user=request.user)
+
+    context = {
+        'slices': slices, 
+    }
+    return render(request, 'times/all_time_slices.html', context)

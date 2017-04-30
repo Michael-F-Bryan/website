@@ -30,16 +30,17 @@ class TimeSlice(models.Model):
     start = models.DateTimeField('Start Date')
     end = models.DateTimeField('End Date')
     user = models.ForeignKey(User, unique=False)
+    created_by = models.ForeignKey(User, editable=False, unique=False, 
+                                   related_name='%(class)s_created_by', 
+                                   blank=True, null=True)
 
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    can_view_tasks = models.BooleanField(default=False)
 
     def __str__(self):
         return '<{}: start="{}" end="{}" view_tasks={}>'.format(
             self.__class__.__name__,
             self.start.strftime('%x'),
-            self.end.strftime('%x'),
-            self.can_view_tasks)
+            self.end.strftime('%x'))
 
     def times(self):
         """

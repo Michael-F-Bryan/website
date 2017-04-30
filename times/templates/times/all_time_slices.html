@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+
+{% block tail %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" charset="utf-8"></script>
+<script charset="utf-8">
+    function editTime(timeID) {
+        window.location.href = `/times/edit/${timeID}`;
+    }
+
+    function deleteTime(timeID) {
+        $("#yesBtn").attr("href", `/times/delete/${timeID}`);
+        $("#areYouSure").modal();
+    }
+
+//Mousetrap.bind("n", e => {window.location.href = "{% url 'times:new' %}"});
+//Mousetrap.bind("d", e => {window.location.href = "{% url 'times:download' %}"});
+Mousetrap.bind("l", e => {window.location.href = "{% url 'times:new_time_slice' %}"});
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h1>Time Slice Overview
+        <a href="{% url 'times:new_time_slice' %}"><span
+                data-toggle="tooltip"
+                title="New Time Slice (l)"
+                class="icon small glyphicon glyphicon-link"></span></a>
+</h1>
+
+<table class="table table-hover">
+  <thead>
+    <th>#</th>
+    <th>Start</th>
+    <th>End</th>
+    <th>User</th>
+    <th># Times</th>
+    <th>UUID</th>
+  </thead>
+  <tbody>
+    {% for ts in slices %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ ts.start }}</td>
+      <td>{{ ts.end }}</td>
+      <td>{{ ts.user }}</td>
+      <td>{{ ts.times|length }}</td>
+      <td><a href="{% url 'times:slice' ts.unique_id.hex %}">{{ ts.unique_id }}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
