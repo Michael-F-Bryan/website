@@ -38,7 +38,7 @@ Mousetrap.bind("n", e => {window.location.href = "{% url 'times:new_time_slice' 
       <td>{{ ts.end }}</td>
       <td>{{ ts.user }}</td>
       <td>{{ ts.times|length }}</td>
-      <td><a href="{% url 'times:slice' ts.unique_id.hex %}">{{ ts.unique_id.hex|slice:":6" }}</a>
+      <td><a href="{% url 'times:slice' ts.unique_id.hex %}">{{ ts.unique_id.hex|slice:":7" }}</a>
         <div class="control-icons pull-right">
           <a href="{% url 'times:slice_edit' ts.unique_id.hex %}"><span class="hidden-hover small glyphicon glyphicon-pencil"></span></a>
             <a onclick="deleteTimeSlice('{{ ts.unique_id.hex }}')"><span class="hidden-hover small glyphicon glyphicon-trash"></span></a>
