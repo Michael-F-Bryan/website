@@ -1,8 +1,9 @@
 import uuid 
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
-from datetime import timedelta
+import emoji
 
 class Time(models.Model):
     start = models.DateTimeField('Start Time')
@@ -24,6 +25,11 @@ class Time(models.Model):
             return duration.total_seconds() / 3600
         except TypeError:
             return 0
+
+    def emojize(self):
+        self.morning_task = emoji.emojize(self.morning_task, use_aliases=True)
+        self.afternoon_task = emoji.emojize(self.afternoon_task, use_aliases=True)
+
 
 
 class TimeSlice(models.Model):

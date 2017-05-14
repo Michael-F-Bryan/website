@@ -46,7 +46,7 @@ def detail(request, time_id):
                         peer_ip or "UNKNOWN")
         return HttpResponseForbidden()
 
-    logger.info("User viewed timesheet entry (user=%s, time_id=%d)",
+    logger.info("User viewed timesheet entry (user=%s, time_id=%s)",
                  request.user, time_id)
 
     return render(request, 'times/detail.html', {'time': time})
@@ -77,7 +77,10 @@ class TimeEdit(View):
         form = TimeForm(request.POST or None, instance=time)
 
         if form.is_valid():
-            form.save()
+            time = form.save(commit=False)
+            time.emojize()
+            time.save()
+
             logger.info("User updated timesheet (user=%s, time_id=%d)", 
                          request.user, time_id)
             return redirect('times:list_all')
@@ -102,6 +105,7 @@ class NewTime(View):
 
         if form.is_valid():
             time = form.save(commit=False)
+            time.emojize()
             time.user = request.user
             time.save()
 

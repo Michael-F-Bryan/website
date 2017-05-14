@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+import emoji
 
 from .models import Time, TimeSlice
 
