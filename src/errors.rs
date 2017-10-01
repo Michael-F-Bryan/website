@@ -5,5 +5,6 @@ error_chain! {
         Io(::std::io::Error);
         Json(::serde_json::Error);
         Bcrypt(::bcrypt::BcryptError);
+        Mongo(::mongodb::Error);
     }
 }

@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use sessions::{Session, SessionManager};
 use db::{self, DbConn};
 use traits::Auth;
+use errors::*;
 
 
 pub fn server() -> Rocket {
@@ -49,19 +50,19 @@ fn login_form(
     creds: Form<LoginRequest>,
     sm: SessionManager,
     db: DbConn,
-) -> Redirect {
+) -> Result<Redirect> {
     let creds = creds.into_inner();
     println!("{} logged in", creds.username);
 
-    let user = match db.validate_user(&creds.username, &creds.password) {
+    let user = match db.validate_user(&creds.username, &creds.password)? {
         Some(u) => u,
-        None => return Redirect::to("/login"),
+        None => return Ok(Redirect::to("/login")),
     };
 
     let new_session = sm.new_session(&user);
 
     cookies.add(new_session.cookie());
-    Redirect::to("/")
+    Ok(Redirect::to("/"))
 }
 
 #[get("/login")]

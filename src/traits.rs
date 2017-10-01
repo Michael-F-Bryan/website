@@ -1,18 +1,21 @@
 #![allow(unused_variables, unused_imports)]
 
 use std::io::Write;
+use std::convert::TryFrom;
 use bcrypt::{self, DEFAULT_COST};
 use uuid::Uuid;
-use mongodb::Client;
+use mongodb::{Client, ThreadedClient};
+use mongodb::db::ThreadedDatabase;
 
 use models::User;
+use db::DbConn;
 use errors::*;
 
 
-pub trait Auth {
-    fn get_user_by_id(&self, user_id: Uuid) -> Option<User>;
+pub trait Auth: DataStore {
+    fn get_user_by_id(&self, user_id: Uuid) -> Result<Option<User>>;
     fn new_user(&mut self, username: &str, password: &str, is_admin: bool) -> Result<User>;
-    fn validate_user(&self, username: &str, password: &str) -> Option<User>;
+    fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>>;
 }
 
 pub trait DataStore {
@@ -23,7 +26,7 @@ pub trait DataStore {
 }
 
 
-impl DataStore for Client {
+impl DataStore for DbConn {
     fn dump_database(&self, writer: &mut Write) -> Result<()> {
         unimplemented!()
     }
@@ -33,16 +36,40 @@ impl DataStore for Client {
     }
 }
 
-impl Auth for Client {
-    fn get_user_by_id(&self, uuid: Uuid) -> Option<User> {
-        unimplemented!()
+impl Auth for DbConn {
+    fn get_user_by_id(&self, uuid: Uuid) -> Result<Option<User>> {
+        let filter = doc!{ "uuid" => (uuid.to_string())};
+        self.find_by("users", filter)
     }
 
     fn new_user(&mut self, username: &str, password: &str, is_admin: bool) -> Result<User> {
-        unimplemented!()
+        // first make sure the user doesn't already exist
+        if self.find_by::<User>("users", doc!{ "name" => username})?
+            .is_some()
+        {
+            bail!("Someone with that username already exists");
+        }
+
+        let hash = bcrypt::hash(password, DEFAULT_COST)?;
+
+        let user = User {
+            uuid: Uuid::new_v4(),
+            name: username.to_string(),
+            password_hash: hash,
+            admin: is_admin,
+        };
+
+        self.db("website")
+            .collection("users")
+            .insert_one(user.clone().into(), None)?;
+
+        Ok(user)
     }
 
-    fn validate_user(&self, username: &str, password: &str) -> Option<User> {
-        unimplemented!()
+    fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>> {
+        let hash = bcrypt::hash(password, DEFAULT_COST)?;
+
+        let filter = doc!{"name" => (username), "password_hash" => (hash)};
+        self.find_by("users", filter)
     }
 }
