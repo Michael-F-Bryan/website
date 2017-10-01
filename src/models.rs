@@ -1,5 +1,5 @@
 
-#[derive(Debug, Clone, Queryable)]
+#[derive(Debug, Clone, Queryable, PartialEq, Serialize, Deserialize)]
 pub struct User {
     pub id: usize,
     pub name: String,

@@ -1,0 +1,14 @@
+{% extends "base" %}
+
+<!-- -->
+
+{% block title %}Admin Section{% endblock title %}
+
+<!-- -->
+
+{% block content %}
+<div>
+    <h1>Admin Section</h1>
+    <h2>Welcome {{ user }}</h2>
+</div>
+{% endblock content %}

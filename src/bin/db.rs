@@ -59,7 +59,7 @@ impl Deref for DbConn {
     }
 }
 
-
+#[derive(Debug, Clone, PartialEq)]
 pub struct LoggedInUser(pub User);
 
 impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
@@ -67,7 +67,8 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let db = DbConn::from_request(request)?;
-        let auth_cookie = match request.cookies().get_private(AUTH_COOKIE) {
+        let cookies = request.cookies();
+        let auth_cookie = match cookies.get(AUTH_COOKIE) {
             Some(cookie) => cookie,
             None => {
                 return Outcome::Failure((

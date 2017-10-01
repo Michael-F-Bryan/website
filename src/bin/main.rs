@@ -13,8 +13,9 @@ extern crate website;
 
 use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
-use rocket::response::Redirect;
+use rocket::response::{NamedFile, Redirect};
 use rocket_contrib::Template;
+use std::path::{Path, PathBuf};
 
 mod db;
 use db::LoggedInUser;
@@ -25,19 +26,24 @@ fn main() {
 
     rocket::ignite()
         .manage(db::init_pool())
-        .mount("/", routes![home, admin, login, login_form])
+        .mount("/", routes![home, admin, login, login_form, static_files])
         .attach(Template::fairing())
         .launch();
 }
 
 #[get("/")]
-fn home() -> String {
-    String::from("Hello World!")
+fn home(user: Option<LoggedInUser>) -> Template {
+    println!("User: {:?}", user);
+    let name = user.map(|u| u.name.clone());
+
+    let ctx = json!({ "user": name });
+    Template::render("index", ctx)
 }
 
 #[get("/admin")]
-fn admin(user: LoggedInUser) -> String {
-    format!("Hello {}!", user.name)
+fn admin(user: LoggedInUser) -> Template {
+    let ctx = json!({ "user": user.name.clone() });
+    Template::render("admin", ctx)
 }
 
 #[derive(Debug, Clone, FromForm)]
@@ -50,14 +56,17 @@ struct LoginRequest {
 fn login_form(mut cookies: Cookies, creds: Form<LoginRequest>) -> Redirect {
     println!("User logged in: {:?}", creds);
 
-    let auth = Cookie::build(db::AUTH_COOKIE, "1").secure(true).finish();
-
-    cookies.add_private(auth);
+    cookies.add(Cookie::new(db::AUTH_COOKIE, "1"));
     Redirect::to("/")
 }
 
 #[get("/login")]
 fn login() -> Template {
     let ctx = json!({"title": "Login"});
-    Template::render("base", ctx)
+    Template::render("login", ctx)
+}
+
+#[get("/static/<file..>")]
+fn static_files(file: PathBuf) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/").join(file)).ok()
 }
