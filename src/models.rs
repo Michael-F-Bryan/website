@@ -1,7 +1,9 @@
+use uuid::Uuid;
 
-#[derive(Debug, Clone, Queryable, PartialEq, Serialize, Deserialize)]
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct User {
-    pub id: usize,
+    pub uuid: Uuid,
     pub name: String,
     pub password_hash: String,
     pub admin: bool,
