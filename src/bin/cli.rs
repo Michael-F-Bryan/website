@@ -9,11 +9,13 @@ extern crate website;
 
 use std::env;
 use std::process;
+use std::io::Read;
+use std::fs::File;
 use clap::{App, Arg, ArgMatches, SubCommand};
 
 use website::errors::*;
 use website::DbConn;
-use website::traits::Auth;
+use website::traits::*;
 
 
 macro_rules! backtrace {
@@ -46,6 +48,8 @@ fn main() {
 
     let ret = match matches.subcommand() {
         ("create-user", Some(args)) => create_user(conn, args),
+        ("dump-db", _) => dump_database(conn),
+        ("load-db", Some(args)) => load_database(conn, args),
         _ => {
             app().print_help().expect("Couldn't print help message");
             println!();
@@ -54,6 +58,26 @@ fn main() {
     };
 
     backtrace!(ret);
+}
+
+fn dump_database(conn: DbConn) -> Result<()> {
+    let mut stdout = ::std::io::stdout();
+    conn.dump_database(&mut stdout)
+}
+
+fn load_database(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
+    let mut input: Box<Read> = match args.value_of("in-file") {
+        Some(filename) => {
+            let f = File::open(filename).chain_err(|| "Unable to open input file")?;
+            Box::new(f)
+        },
+        None => Box::new(::std::io::stdin()),
+    };
+
+    let mut buffer = Vec::new();
+    input.read_to_end(&mut buffer).chain_err(|| "Reading failed")?;
+
+    conn.load_database(&buffer)
 }
 
 fn create_user(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
@@ -115,4 +139,12 @@ fn app() -> App<'static, 'static> {
                 .about("Create a new user."),
         )
         .subcommand(SubCommand::with_name("list-users").about("List all users."))
+        .subcommand(SubCommand::with_name("dump-db").about("Dump the database contents as JSON."))
+        .subcommand(SubCommand::with_name("load-db").about("Load data into the database.")
+        .arg(Arg::with_name("in-file")
+            .short("i")
+            .long("in-file")
+            .takes_value(true)
+            .help("The file to read from (defaults to stdin)"))
+        )
 }

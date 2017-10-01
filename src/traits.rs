@@ -6,6 +6,8 @@ use bcrypt::{self, DEFAULT_COST};
 use uuid::Uuid;
 use mongodb::{Client, ThreadedClient};
 use mongodb::db::ThreadedDatabase;
+use serde_json;
+use bson::Document;
 
 use models::User;
 use db::DbConn;
@@ -25,14 +27,31 @@ pub trait DataStore {
     fn load_database(&mut self, data: &[u8]) -> Result<()>;
 }
 
+/// The contents of *everything* in a database.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+struct DatabaseContents {
+    users: Vec<User>,
+}
 
 impl DataStore for DbConn {
     fn dump_database(&self, writer: &mut Write) -> Result<()> {
-        unimplemented!()
+        let users = self.find_many("users", doc!{})?
+            .collect::<Result<Vec<User>>>()?;
+
+        let db_contents = DatabaseContents { users };
+        serde_json::to_writer_pretty(writer, &db_contents)?;
+
+        Ok(())
     }
 
     fn load_database(&mut self, data: &[u8]) -> Result<()> {
-        unimplemented!()
+        let got: DatabaseContents = serde_json::from_slice(data)?;
+        let DatabaseContents { users } = got;
+
+        let users: Vec<Document> = users.into_iter().map(Into::into).collect();
+        self.collection("users").insert_many(users, None)?;
+
+        Ok(())
     }
 }
 

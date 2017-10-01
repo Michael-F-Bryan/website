@@ -1,4 +1,5 @@
 #![feature(plugin)]
+#![feature(conservative_impl_trait)]
 #![plugin(rocket_codegen)]
 #![feature(custom_derive, try_from)]
 
