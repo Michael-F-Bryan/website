@@ -1,0 +1,11 @@
+[package]
+authors = ["Michael Bryan <michaelfbryan@gmail.com>"]
+name = "website"
+version = "0.1.0"
+
+[dependencies]
+diesel = "0.16"
+diesel_codegen = "0.16"
+error-chain = "0.11"
+rocket = "0.3"
+rocket_codegen = "0.3"
