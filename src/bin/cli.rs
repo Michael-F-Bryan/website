@@ -8,9 +8,30 @@ extern crate dotenv;
 extern crate website;
 
 use std::env;
+use std::process;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use website::errors::*;
 
+use website::errors::*;
+use website::DbConn;
+use website::traits::Auth;
+
+
+macro_rules! backtrace {
+    ($result:expr) => {
+        match $result {
+            Err(e) => {
+                eprintln!("Error: {}", e);
+
+                for cause in e.iter().skip(1) {
+                    eprintln!("\tCaused by: {}", cause);
+                }
+
+                process::exit(1);
+            }
+            Ok(v) => v,
+        }
+    };
+}
 
 fn main() {
     let matches = app().get_matches();
@@ -20,13 +41,29 @@ fn main() {
     debug!("App args: {:?}", globals);
     debug!("Subcommand: {:?}", matches.subcommand());
 
-    match matches.subcommand() {
-        ("create-user", args) => println!("{:?}", args),
+    let conn = backtrace!(website::connect(&globals.database_url));
+    let conn = DbConn(conn);
+
+    let ret = match matches.subcommand() {
+        ("create-user", Some(args)) => create_user(conn, args),
         _ => {
             app().print_help().expect("Couldn't print help message");
             println!();
+            Ok(())
         }
-    }
+    };
+
+    backtrace!(ret);
+}
+
+fn create_user(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
+    let username = args.value_of("username").expect("required field");
+    let password = args.value_of("password").expect("required field");
+    let is_admin = args.is_present("admin");
+
+    conn.new_user(&username, &password, is_admin)
+        .chain_err(|| "Couldn't create a new user")
+        .map(|_| ())
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -72,7 +109,9 @@ fn app() -> App<'static, 'static> {
         )
         .subcommand(
             SubCommand::with_name("create-user")
-                .arg(Arg::with_name("name").takes_value(true).required(true))
+                .arg(Arg::with_name("username").takes_value(true).required(true).help("The new user's username"))
+                .arg(Arg::with_name("password").takes_value(true).required(true).help("The new user's password"))
+                .arg(Arg::with_name("admin").short("a").long("admin").help("Make the user an administrator"))
                 .about("Create a new user."),
         )
         .subcommand(SubCommand::with_name("list-users").about("List all users."))

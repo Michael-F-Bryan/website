@@ -43,6 +43,12 @@ impl Auth for DbConn {
     }
 
     fn new_user(&mut self, username: &str, password: &str, is_admin: bool) -> Result<User> {
+        info!(
+            "Creating new {} {:?}",
+            if is_admin { "admin" } else { "user" },
+            username
+        );
+
         // first make sure the user doesn't already exist
         if self.find_by::<User>("users", doc!{ "name" => username})?
             .is_some()
@@ -63,10 +69,13 @@ impl Auth for DbConn {
             .collection("users")
             .insert_one(user.clone().into(), None)?;
 
+        debug!("User created");
+
         Ok(user)
     }
 
     fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>> {
+        debug!("Validating username and password for {:?}", username);
         let hash = bcrypt::hash(password, DEFAULT_COST)?;
 
         let filter = doc!{"name" => (username), "password_hash" => (hash)};

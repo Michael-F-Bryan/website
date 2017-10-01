@@ -12,9 +12,8 @@ use bson::Document;
 use errors::*;
 
 
-pub fn connect() -> Result<Client> {
-    let db_url = env::var("DATABASE_URL").unwrap();
-    Client::with_uri(&db_url).chain_err(|| "Couldn't connect to the database")
+pub fn connect(db_url: &str) -> Result<Client> {
+    Client::with_uri(db_url).chain_err(|| "Couldn't connect to the database")
 }
 
 

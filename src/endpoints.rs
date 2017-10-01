@@ -12,9 +12,9 @@ use traits::Auth;
 use errors::*;
 
 
-pub fn server() -> Rocket {
+pub fn server(db_url: &str) -> Rocket {
     dotenv::dotenv().ok();
-    let database = db::connect().unwrap();
+    let database = db::connect(db_url).unwrap();
     let session_manager = SessionManager::new();
 
     rocket::ignite()
