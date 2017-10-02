@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value, double_parens))]
+
 use rocket::{Config, Rocket};
 use rocket::config::Environment;
 use rocket::http::Cookies;
@@ -35,8 +37,6 @@ pub fn server(db_url: &str) -> Result<Rocket> {
 
 #[get("/")]
 fn home(session: Option<Session>) -> Template {
-    println!("Session: {:?}", session);
-
     let ctx = json!({ "user": session.map(|s| s.username) });
     Template::render("index", ctx)
 }

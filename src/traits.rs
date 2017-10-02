@@ -1,10 +1,7 @@
-#![allow(unused_variables, unused_imports)]
-
 use std::io::Write;
-use std::convert::TryFrom;
 use bcrypt::{self, DEFAULT_COST};
 use uuid::Uuid;
-use mongodb::{Client, ThreadedClient};
+use mongodb::ThreadedClient;
 use mongodb::db::ThreadedDatabase;
 use mongodb::common::WriteConcern;
 use serde_json;
@@ -15,6 +12,7 @@ use db::DbConn;
 use errors::*;
 
 
+/// Authentication and user management.
 pub trait Auth {
     fn get_user_by_id(&self, user_id: Uuid) -> Result<Option<User>>;
     fn new_user(&mut self, username: &str, password: &str, is_admin: bool) -> Result<User>;
@@ -58,7 +56,7 @@ impl DataStore for DbConn {
 
 impl Auth for DbConn {
     fn get_user_by_id(&self, uuid: Uuid) -> Result<Option<User>> {
-        let filter = doc!{ "uuid" => (uuid.to_string())};
+        let filter = doc!{"uuid" => (uuid.to_string())};
         self.find_by("users", filter)
     }
 
@@ -103,11 +101,11 @@ impl Auth for DbConn {
     fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>> {
         debug!("Validating username and password for {:?}", username);
 
-        let filter = doc!{"name" => (username)};
+        let filter = doc!{"name" => username};
         let got = self.find_by::<User>("users", filter)?;
 
         match got {
-            Some(user) => if bcrypt::verify(&password, &user.password_hash)? {
+            Some(user) => if bcrypt::verify(password, &user.password_hash)? {
                 debug!("Username and password valid for {:?}", user.name);
                 Ok(Some(user))
             } else {

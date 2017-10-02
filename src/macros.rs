@@ -9,7 +9,7 @@ macro_rules! backtrace {
                     eprintln!("\tCaused by: {}", cause);
                 }
 
-                ::std::process::exit(1);
+                ::std::process::exit(1)
             }
             Ok(v) => v,
         }

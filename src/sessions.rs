@@ -18,8 +18,7 @@ pub struct SessionManager(Arc<RwLock<HashMap<Uuid, Session>>>);
 
 impl SessionManager {
     pub fn new() -> SessionManager {
-        let session = HashMap::new();
-        SessionManager(Arc::new(RwLock::new(session)))
+        Default::default()
     }
 
     pub fn get(&self, uuid: &Uuid) -> Option<Session> {
@@ -37,6 +36,13 @@ impl SessionManager {
 
         self.0.write().unwrap().insert(session_id, session.clone());
         session
+    }
+}
+
+impl Default for SessionManager {
+    fn default() -> SessionManager {
+        let session = HashMap::new();
+        SessionManager(Arc::new(RwLock::new(session)))
     }
 }
 

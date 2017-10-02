@@ -9,7 +9,6 @@ extern crate dotenv;
 extern crate website;
 
 use std::env;
-use std::process;
 use std::io::Read;
 use std::fs::File;
 use clap::{App, Arg, ArgMatches, SubCommand};
@@ -70,7 +69,7 @@ fn create_user(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
     let password = args.value_of("password").expect("required field");
     let is_admin = args.is_present("admin");
 
-    conn.new_user(&username, &password, is_admin)
+    conn.new_user(username, password, is_admin)
         .chain_err(|| "Couldn't create a new user")
         .map(|_| ())
 }
