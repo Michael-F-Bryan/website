@@ -3,6 +3,7 @@ use bson::Document;
 use bson::oid::ObjectId;
 use chrono::{DateTime, TimeZone, Local, Duration};
 use rand::{Rand, Rng};
+use mongodb::common::WriteConcern;
 
 use db::DbConn;
 use errors::*;
@@ -10,13 +11,13 @@ use errors::*;
 pub const TIMESHEET_ENTRY_NAME: &'static str = "timesheet_entries";
 
 pub trait Times {
-    fn summary(&self) -> Result<Vec<TimeSheetEntry>>;
+    fn time_summary(&self) -> Result<Vec<TimeSheetEntry>>;
     fn save_entry(&mut self, entry: TimeSheetEntry) -> Result<()>;
     fn delete_entry(&mut self, id: ObjectId) -> Result<()>;
 }
 
 impl Times for DbConn {
-    fn summary(&self) -> Result<Vec<TimeSheetEntry>> {
+    fn time_summary(&self) -> Result<Vec<TimeSheetEntry>> {
         let entries: Result<Vec<TimeSheetEntry>> = self.find_all(TIMESHEET_ENTRY_NAME)?.collect();
         let mut entries = entries?;
 
@@ -29,11 +30,33 @@ impl Times for DbConn {
     }
 
     fn save_entry(&mut self, entry: TimeSheetEntry) -> Result<()> {
-        unimplemented!()
+        debug!("{} entry for {}", if entry.id.is_some() { "Updating" } else {"Saving" }, entry.start.to_rfc2822());
+
+        let write_concerns = WriteConcern {
+            j: true,
+            fsync: true,
+            ..Default::default()
+        };
+        self.collection(TIMESHEET_ENTRY_NAME).insert_one(entry.into(), Some(write_concerns))?;
+
+        Ok(())
     }
 
     fn delete_entry(&mut self, id: ObjectId) -> Result<()> {
-        unimplemented!()
+        let write_concerns = WriteConcern {
+            j: true,
+            fsync: true,
+            ..Default::default()
+        };
+
+        let filter = doc!{"_id" => id};
+        let delete_result = self.collection(TIMESHEET_ENTRY_NAME).delete_one(filter, Some(write_concerns))?;
+
+        if delete_result.deleted_count == 1 {
+            Ok(())
+        } else {
+            Err("No entry deleted".into())
+        }
     }
 }
 
@@ -47,6 +70,21 @@ pub struct TimeSheetEntry {
     pub breaks: u32,
     pub morning: String,
     pub afternoon: String,
+}
+
+impl TimeSheetEntry {
+    pub fn new() -> TimeSheetEntry {
+        let now = Local::now();
+
+        TimeSheetEntry {
+            id: None,
+            start: now,
+            end: now + Duration::hours(8),
+            breaks: 0,
+            morning: String::new(),
+            afternoon: String::new(),
+        }
+    }
 }
 
 impl From<TimeSheetEntry> for Document {

@@ -11,6 +11,7 @@ use helpers::Docker;
 use website::errors::*;
 use website::DbConn;
 use website::traits::{Auth, DataStore, DatabaseContents};
+use website::times::{TimeSheetEntry, Times};
 use rand::Rng;
 
 fn dump_db(conn: &DbConn) -> Result<DatabaseContents> {
@@ -77,4 +78,27 @@ fn add_a_user_and_verify_them_afterwards() {
             .unwrap()
             .is_none()
     );
+}
+
+#[test]
+fn create_a_timesheet_entry_and_delete_it_again() {
+    let db = Docker::new().unwrap();
+    let mut conn = DbConn(website::connect(db.database_url()).unwrap());
+
+    let entry = TimeSheetEntry::new();
+
+    // save the entry
+    conn.save_entry(entry.clone()).unwrap();
+
+    // make sure it's in the summary
+    let summary = conn.time_summary().unwrap();
+    assert_eq!(summary.len(), 1);
+    assert_eq!(summary[0].start, entry.start);
+
+    // then delete it again
+    let id = summary[0].id.clone().unwrap();
+    conn.delete_entry(id).unwrap();
+
+    // and make sure it's actually gone
+    assert_eq!(conn.time_summary().unwrap().len(), 0);
 }
