@@ -1,4 +1,5 @@
 use std::ops::{Deref, DerefMut};
+use std::io::Write;
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Debug;
 use rocket::request::{self, FromRequest, Request, State};
@@ -8,12 +9,65 @@ use mongodb::{Client, ThreadedClient};
 use mongodb::db::ThreadedDatabase;
 use mongodb::coll::Collection;
 use bson::Document;
+use serde_json;
 
 use errors::*;
+use users::User;
+use times::{TimeSheetEntry, TIMESHEET_ENTRY_NAME};
 
 
 pub fn connect<S: AsRef<str>>(db_url: S) -> Result<Client> {
     Client::with_uri(db_url.as_ref()).chain_err(|| "Couldn't connect to the database")
+}
+
+
+pub trait DataStore {
+    /// Write a serialized version of the entire database to some `Writer`.
+    fn dump_database(&self, writer: &mut Write) -> Result<()>;
+    /// Load a serialized version of the database.
+    fn load_database(&mut self, data: &[u8]) -> Result<()>;
+}
+
+/// An in-memory representation of the entire contents of the database.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct DatabaseContents {
+    pub users: Vec<User>,
+    pub timesheet_entries: Vec<TimeSheetEntry>,
+}
+
+impl DataStore for DbConn {
+    fn dump_database(&self, writer: &mut Write) -> Result<()> {
+        let users: Result<Vec<User>> = self.find_all("users")?.collect();
+        let users = users?;
+        let times: Result<Vec<TimeSheetEntry>> = self.find_all(TIMESHEET_ENTRY_NAME)?.collect();
+        let timesheet_entries = times?;
+
+        let db_contents = DatabaseContents {
+            users,
+            timesheet_entries,
+        };
+        serde_json::to_writer_pretty(writer, &db_contents)?;
+
+        Ok(())
+    }
+
+    fn load_database(&mut self, data: &[u8]) -> Result<()> {
+        let got: DatabaseContents = serde_json::from_slice(data)?;
+        let DatabaseContents {
+            users,
+            timesheet_entries,
+        } = got;
+
+        let users: Vec<Document> = users.into_iter().map(Into::into).collect();
+        self.collection("users").insert_many(users, None)?;
+
+        let timesheet_entries: Vec<Document> =
+            timesheet_entries.into_iter().map(Into::into).collect();
+        self.collection(TIMESHEET_ENTRY_NAME)
+            .insert_many(timesheet_entries, None)?;
+
+        Ok(())
+    }
 }
 
 

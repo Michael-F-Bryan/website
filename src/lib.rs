@@ -28,21 +28,25 @@ extern crate rand;
 
 #[macro_use]
 mod macros;
-mod db;
+pub mod db;
 pub mod sessions;
-pub mod traits;
 pub mod errors;
-pub mod models;
 pub mod endpoints;
 pub mod times;
+pub mod users;
 
 pub use endpoints::server;
-pub use db::{connect, DbConn};
 
 use std::env;
 use log::LogLevel;
 use env_logger::LogBuilder;
 use chrono::Local;
+
+pub mod prelude {
+    pub use users::Auth;
+    pub use times::Times;
+    pub use db::DataStore;
+}
 
 
 /// Initialize `env_logger` using the provided verbosity level.

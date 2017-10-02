@@ -1,18 +1,18 @@
 extern crate env_logger;
-#[macro_use]
 extern crate error_chain;
 #[macro_use]
 extern crate log;
 extern crate rand;
 extern crate serde_json;
+#[macro_use]
 extern crate website;
 
 mod helpers;
 
 use helpers::Docker;
+use website::db::{self, DatabaseContents, DbConn};
+use website::prelude::*;
 use website::errors::*;
-use website::DbConn;
-use website::traits::{Auth, DataStore, DatabaseContents};
 use website::times::{TimeSheetEntry, Times};
 use rand::Rng;
 
@@ -26,7 +26,7 @@ fn dump_db(conn: &DbConn) -> Result<DatabaseContents> {
 #[test]
 fn round_trip_loading_and_dumping() {
     let db = Docker::new().unwrap();
-    let mut conn = DbConn(website::connect(db.database_url()).unwrap());
+    let mut conn = DbConn(db::connect(db.database_url()).unwrap());
     let original = DatabaseContents {
         users: rand::thread_rng().gen_iter().take(10).collect(),
         timesheet_entries: rand::thread_rng().gen_iter().take(10).collect(),
@@ -47,7 +47,7 @@ fn round_trip_loading_and_dumping() {
 #[test]
 fn add_a_user_and_verify_them_afterwards() {
     let db = Docker::new().unwrap();
-    let mut conn = DbConn(website::connect(db.database_url()).unwrap());
+    let mut conn = DbConn(db::connect(db.database_url()).unwrap());
     let username = "Michael";
     let password = "password1";
 
@@ -85,7 +85,7 @@ fn add_a_user_and_verify_them_afterwards() {
 #[test]
 fn create_a_timesheet_entry_and_delete_it_again() {
     let db = Docker::new().unwrap();
-    let mut conn = DbConn(website::connect(db.database_url()).unwrap());
+    let mut conn = DbConn(db::connect(db.database_url()).unwrap());
 
     let entry = TimeSheetEntry::new();
 

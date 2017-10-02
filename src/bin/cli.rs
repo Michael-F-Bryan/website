@@ -14,8 +14,8 @@ use std::fs::File;
 use clap::{App, Arg, ArgMatches, SubCommand};
 
 use website::errors::*;
-use website::DbConn;
-use website::traits::*;
+use website::db::{self, DbConn};
+use website::prelude::*;
 
 
 fn main() {
@@ -26,7 +26,7 @@ fn main() {
     debug!("App args: {:?}", globals);
     debug!("Subcommand: {:?}", matches.subcommand());
 
-    let conn = backtrace!(website::connect(&globals.database_url));
+    let conn = backtrace!(db::connect(&globals.database_url));
     let conn = DbConn(conn);
 
     let ret = match matches.subcommand() {

@@ -4,7 +4,7 @@ use rocket::request::{self, FromRequest, Request, State};
 use rocket::http::{Cookie, Status};
 use rocket::Outcome;
 use uuid::Uuid;
-use models::User;
+use users::User;
 use errors::*;
 
 use db::DbConn;

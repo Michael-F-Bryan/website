@@ -4,17 +4,16 @@ use std::time::Duration;
 use std::path::{Path, PathBuf};
 use rocket::{Config, Rocket};
 use rocket::config::Environment;
-use rocket::http::{Cookies, Status};
-use rocket::request::Form;
+use rocket::http::Status;
 use rocket::request::Request;
-use rocket::response::{NamedFile, Redirect, Responder, Response};
+use rocket::response::{NamedFile, Responder, Response};
 use rocket_contrib::Template;
 use dotenv;
 
 use sessions::{Session, SessionManager};
-use db::{self, DbConn};
-use traits::Auth;
+use db;
 use errors::*;
+use users;
 
 
 pub fn server_with_config(db_url: &str, cfg: Config, log: bool) -> Result<Rocket> {
@@ -22,11 +21,14 @@ pub fn server_with_config(db_url: &str, cfg: Config, log: bool) -> Result<Rocket
     let database = db::connect(db_url)?;
     let session_manager = SessionManager::new();
 
+    let mut all_routes = routes![home, static_files];
+    all_routes.extend(users::endpoints());
+
     Ok(
         Rocket::custom(cfg, log)
             .manage(database)
             .manage(session_manager)
-            .mount("/", routes![home, admin, login, login_form, static_files])
+            .mount("/", all_routes)
             .attach(Template::fairing()),
     )
 }
@@ -41,50 +43,6 @@ pub fn server(db_url: &str) -> Result<Rocket> {
 fn home(session: Option<Session>) -> Template {
     let ctx = json!({ "user": session.map(|s| s.username) });
     Template::render("index", ctx)
-}
-
-#[get("/admin")]
-fn admin(session: Session) -> Template {
-    let ctx = json!({ "user": session.username.clone() });
-    Template::render("admin", ctx)
-}
-
-#[derive(Debug, Clone, FromForm)]
-struct LoginRequest {
-    username: String,
-    password: String,
-}
-
-
-#[post("/login", data = "<creds>")]
-fn login_form(
-    mut cookies: Cookies,
-    creds: Option<Form<LoginRequest>>,
-    sm: SessionManager,
-    db: DbConn,
-) -> Result<Redirect> {
-    let creds = match creds {
-        Some(creds) => creds.into_inner(),
-        None => return Ok(Redirect::to("/login")),
-    };
-
-    println!("{} logged in", creds.username);
-
-    let user = match db.validate_user(&creds.username, &creds.password)? {
-        Some(u) => u,
-        None => return Ok(Redirect::to("/login")),
-    };
-
-    let new_session = sm.new_session(&user);
-
-    cookies.add(new_session.cookie());
-    Ok(Redirect::to("/"))
-}
-
-#[get("/login")]
-fn login() -> Template {
-    let ctx = json!({"title": "Login"});
-    Template::render("login", ctx)
 }
 
 #[get("/static/<file..>")]

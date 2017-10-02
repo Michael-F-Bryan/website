@@ -1,36 +1,7 @@
-use std::process::Command;
 use std::sync::{Once, ONCE_INIT};
 use env_logger;
 use website::errors::*;
 use rand::{self, Rng};
-
-macro_rules! cmd {
-    ($name:tt, $($arg:expr),*) => {{
-        let output = Command::new($name)
-            $(
-            .arg($arg)
-
-            )*
-            .output()?;
-
-        let ret: ::website::errors::Result<::std::process::Output> = if !output.status.success() {
-            let command = stringify!($name, $( " ", $arg ),*);
-
-            warn!("{:?} failed with return code {:?}", command, output.status.code());
-            if !output.stdout.is_empty() {
-                warn!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
-            }
-            if !output.stdout.is_empty() {
-                warn!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
-            }
-            Err(format!("Command failed, {:?}", output.status.code()).into())
-        } else {
-            Ok(output)
-        };
-
-        ret
-    }};
-}
 
 pub fn init_logging() {
     static THING: Once = ONCE_INIT;
