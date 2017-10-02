@@ -31,17 +31,20 @@ mod macros;
 pub mod db;
 pub mod sessions;
 pub mod errors;
-pub mod endpoints;
+mod endpoints;
 pub mod times;
 pub mod users;
 
-pub use endpoints::server;
+pub use endpoints::{server, server_with_config};
 
 use std::env;
 use log::LogLevel;
 use env_logger::LogBuilder;
 use chrono::Local;
 
+
+/// A module re-exporting commonly used traits, intended for use as
+/// `use website::prelude::*`.
 pub mod prelude {
     pub use users::Auth;
     pub use times::Times;

@@ -1,3 +1,5 @@
+//! The users module.
+
 mod models;
 mod traits;
 mod endpoints;

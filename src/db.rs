@@ -1,3 +1,5 @@
+//! The low level database connection and utility functions/traits for working with it.
+
 use std::ops::{Deref, DerefMut};
 use std::io::Write;
 use std::convert::{TryFrom, TryInto};
@@ -16,11 +18,13 @@ use users::User;
 use times::{TimeSheetEntry, TIMESHEET_ENTRY_NAME};
 
 
+/// Connect to a MongoDB database.
 pub fn connect<S: AsRef<str>>(db_url: S) -> Result<Client> {
     Client::with_uri(db_url.as_ref()).chain_err(|| "Couldn't connect to the database")
 }
 
 
+/// A data store which can be serialized to disk and loaded back again.
 pub trait DataStore {
     /// Write a serialized version of the entire database to some `Writer`.
     fn dump_database(&self, writer: &mut Write) -> Result<()>;

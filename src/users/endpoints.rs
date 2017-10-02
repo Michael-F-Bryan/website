@@ -11,6 +11,7 @@ use db::DbConn;
 use users::Auth;
 use errors::*;
 
+/// All the endpoints used in the user module.
 pub fn endpoints() -> Vec<Route> {
     routes![admin, login, login_form]
 }

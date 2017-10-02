@@ -16,6 +16,8 @@ use errors::*;
 use users;
 
 
+/// Create a pre-configured `Rocket` server, giving the user a chance to tweak
+/// the configuration and logging.
 pub fn server_with_config(db_url: &str, cfg: Config, log: bool) -> Result<Rocket> {
     dotenv::dotenv().ok();
     let database = db::connect(db_url)?;
@@ -33,6 +35,8 @@ pub fn server_with_config(db_url: &str, cfg: Config, log: bool) -> Result<Rocket
     )
 }
 
+/// Create a pre-configured `Rocket` server, using the specified URL to find the
+/// database.
 pub fn server(db_url: &str) -> Result<Rocket> {
     let env = Environment::active()?;
     let cfg = Config::new(env)?;

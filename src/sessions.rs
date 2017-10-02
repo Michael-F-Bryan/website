@@ -1,3 +1,5 @@
+//! Session management. 
+
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use rocket::request::{self, FromRequest, Request, State};
