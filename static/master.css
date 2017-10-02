@@ -1,3 +1,16 @@
+@font-face {
+    font-family: 'Pacifico';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Pacifico Regular'), local('Pacifico-Regular'), url(https://fonts.gstatic.com/s/pacifico/v9/fKnfV28XkldRW297cFLeqfesZW2xOQ-xsNqO47m55DA.ttf) format('truetype');
+}
+
+.container-fluid {
+    /* hack to make sure the top nav spans the entire screen */
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .login-container {
     font: 95% Arial, Helvetica, sans-serif;
     max-width: 400px;
@@ -60,4 +73,48 @@
 .login-container form button:hover {
     background: #7FACA3;
     cursor: pointer;
+}
+
+.jumbo {
+    width: 60%;
+    background-color: #c0ded9;
+    border-radius: 0.4em;
+    padding: 2em 4em;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 40px;
+}
+
+@media screen and (max-width: 1024px) {
+    .jumbo {
+        width: 80%;
+    }
+}
+
+.jumbo .title {
+    font-family: 'Pacifico', cursive;
+    text-align: center;
+    font-size: 4em;
+    letter-spacing: 5px;
+    text-shadow: 4px 4px 4px #618685;
+    margin-bottom: 0.5em;
+}
+
+@media screen and (max-width: 700px) {
+    h1.title {
+        font-size: 2em;
+    }
+    .jumbo {
+        padding: 0.5em 1em;
+        width: 90%;
+    }
+}
+
+.jumbo .subtitle {
+    text-align: left;
+    font-family: "Courier", monospace;
 }

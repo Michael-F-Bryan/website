@@ -8,9 +8,12 @@
 
 {% block content %}
 <div>
-    <h1>Hello World</h1>
     {% if user %}
     <h2>Welcome {{ user }}</h2>
     {% endif %}
+    <div class="jumbo">
+        <h1 class="title">Michael -F- Bryan</h1>
+        <p class="subtitle">Mechanical Engineer by day, systems programmer and open-source contributor by night...</p>
+    </div>
 </div>
 {% endblock content %}

@@ -42,11 +42,9 @@ impl Docker {
 
     pub fn close(&mut self) -> Result<()> {
         let output = Command::new("docker")
-            .arg("rm")
-            .arg("--force")
+            .arg("kill")
             .arg(&self.image_hash)
             .output()?;
-
 
         if !output.status.success() {
             bail!(
@@ -54,6 +52,11 @@ impl Docker {
                 output.status.code()
             );
         }
+
+        Command::new("docker")
+            .arg("rm")
+            .arg(&self.image_hash)
+            .output()?;
 
         Ok(())
     }
@@ -65,8 +68,6 @@ impl Docker {
 
 impl Drop for Docker {
     fn drop(&mut self) {
-        if let Err(e) = self.close() {
-            eprintln!("Error stopping database: {}", e);
-        }
+        self.close().unwrap();
     }
 }

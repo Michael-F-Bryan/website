@@ -55,14 +55,19 @@ struct LoginRequest {
     password: String,
 }
 
+
 #[post("/login", data = "<creds>")]
 fn login_form(
     mut cookies: Cookies,
-    creds: Form<LoginRequest>,
+    creds: Option<Form<LoginRequest>>,
     sm: SessionManager,
     db: DbConn,
 ) -> Result<Redirect> {
-    let creds = creds.into_inner();
+    let creds = match creds {
+        Some(creds) => creds.into_inner(),
+        None => return Ok(Redirect::to("/login")),
+    };
+
     println!("{} logged in", creds.username);
 
     let user = match db.validate_user(&creds.username, &creds.password)? {
