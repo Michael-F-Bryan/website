@@ -4,6 +4,34 @@ use env_logger;
 use website::errors::*;
 use rand::{self, Rng};
 
+macro_rules! cmd {
+    ($name:tt, $($arg:expr),*) => {{
+        let output = Command::new($name)
+            $(
+            .arg($arg)
+
+            )*
+            .output()?;
+
+        let ret: ::website::errors::Result<::std::process::Output> = if !output.status.success() {
+            let command = stringify!($name, $( " ", $arg ),*);
+
+            warn!("{:?} failed with return code {:?}", command, output.status.code());
+            if !output.stdout.is_empty() {
+                warn!("Stdout: {}", String::from_utf8_lossy(&output.stdout));
+            }
+            if !output.stdout.is_empty() {
+                warn!("Stderr: {}", String::from_utf8_lossy(&output.stderr));
+            }
+            Err(format!("Command failed, {:?}", output.status.code()).into())
+        } else {
+            Ok(output)
+        };
+
+        ret
+    }};
+}
+
 pub fn init_logging() {
     static THING: Once = ONCE_INIT;
     THING.call_once(|| {
@@ -23,17 +51,14 @@ impl Docker {
         let mut rng = rand::thread_rng();
         let port: u16 = rng.gen_range(10_000, u16::max_value());
 
-        let output = Command::new("docker")
-            .arg("run")
-            .arg("--detach")
-            .arg("-p")
-            .arg(format!("{}:27017", port))
-            .arg("mongo")
-            .output()?;
-
-        if !output.status.success() {
-            bail!("Starting docker image failed");
-        }
+        let output = cmd!(
+            "docker",
+            "run",
+            "--detach",
+            "-p",
+            format!("{}:27017", port),
+            "mongo"
+        )?;
 
         let image_hash = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
@@ -41,22 +66,8 @@ impl Docker {
     }
 
     pub fn close(&mut self) -> Result<()> {
-        let output = Command::new("docker")
-            .arg("kill")
-            .arg(&self.image_hash)
-            .output()?;
-
-        if !output.status.success() {
-            bail!(
-                "Trying to kill the docker container gave an erroneous return code, {:?}",
-                output.status.code()
-            );
-        }
-
-        Command::new("docker")
-            .arg("rm")
-            .arg(&self.image_hash)
-            .output()?;
+        cmd!("docker", "kill", &self.image_hash)?;
+        cmd!("docker", "rm", &self.image_hash)?;
 
         Ok(())
     }
