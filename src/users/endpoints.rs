@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value, double_parens))]
 
+use std::net::SocketAddr;
 use rocket::Route;
 use rocket::request::Form;
 use rocket::http::Cookies;
@@ -36,13 +37,17 @@ fn login_form(
     creds: Option<Form<LoginRequest>>,
     sm: SessionManager,
     db: DbConn,
+    peer: SocketAddr,
 ) -> Result<Redirect> {
     let creds = match creds {
         Some(creds) => creds.into_inner(),
-        None => return Ok(Redirect::to("/login")),
+        None => {
+            info!("Failed login from {}", peer);
+            return Ok(Redirect::to("/login"));
+        }
     };
 
-    println!("{} logged in", creds.username);
+    println!("{} logged in from {}", creds.username, peer);
 
     let user = match db.validate_user(&creds.username, &creds.password)? {
         Some(u) => u,

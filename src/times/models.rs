@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use bson::Document;
 use bson::oid::ObjectId;
-use chrono::{DateTime, TimeZone, Local, Duration};
+use chrono::{DateTime, Duration, Local, TimeZone};
 use rand::{Rand, Rng};
 
 use errors::*;
@@ -89,13 +89,18 @@ impl Rand for TimeSheetEntry {
 
         let start = random_date(rng);
         let breaks = rng.gen_range(0, 60);
-        let end = start + Duration::minutes(rng.gen_range(4*60, 9*60));
+        let end = start + Duration::minutes(rng.gen_range(4 * 60, 9 * 60));
 
         let morning = String::new();
         let afternoon = String::new();
 
         TimeSheetEntry {
-            id, start, breaks, end, morning, afternoon
+            id,
+            start,
+            breaks,
+            end,
+            morning,
+            afternoon,
         }
     }
 }

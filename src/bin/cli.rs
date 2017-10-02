@@ -1,20 +1,23 @@
 #[macro_use]
-extern crate log;
+extern crate clap;
+extern crate dotenv;
+extern crate serde_json;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
-extern crate clap;
-extern crate dotenv;
+extern crate log;
 #[macro_use]
 extern crate website;
 
 use std::env;
-use std::io::Read;
+use std::str::FromStr;
+use std::io::{self, Read};
 use std::fs::File;
 use clap::{App, Arg, ArgMatches, SubCommand};
 
 use website::errors::*;
 use website::db::{self, DbConn};
+use website::times::TimeSheetEntry;
 use website::prelude::*;
 
 
@@ -31,6 +34,7 @@ fn main() {
 
     let ret = match matches.subcommand() {
         ("create-user", Some(args)) => create_user(conn, args),
+        ("time-summary", Some(args)) => time_summary(conn, args),
         ("dump-db", _) => dump_database(conn),
         ("load-db", Some(args)) => load_database(conn, args),
         _ => {
@@ -43,10 +47,20 @@ fn main() {
     backtrace!(ret);
 }
 
+fn time_summary(conn: DbConn, args: &ArgMatches) -> Result<()> {
+    let format: Format = args.value_of("format").unwrap().parse()?;
+
+    let summary = conn.time_summary()?;
+    format.print_times(&summary)?;
+
+    Ok(())
+}
+
+
 fn dump_database(conn: DbConn) -> Result<()> {
     let mut stdout = ::std::io::stdout();
     conn.dump_database(&mut stdout)
-    .chain_err(|| "Couldn't dump the database contents to the console")
+        .chain_err(|| "Couldn't dump the database contents to the console")
 }
 
 fn load_database(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
@@ -54,14 +68,17 @@ fn load_database(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
         Some(filename) => {
             let f = File::open(filename).chain_err(|| "Unable to open input file")?;
             Box::new(f)
-        },
+        }
         None => Box::new(::std::io::stdin()),
     };
 
     let mut buffer = Vec::new();
-    input.read_to_end(&mut buffer).chain_err(|| "Reading failed")?;
+    input
+        .read_to_end(&mut buffer)
+        .chain_err(|| "Reading failed")?;
 
-    conn.load_database(&buffer).chain_err(|| "Loading new data into the database failed")
+    conn.load_database(&buffer)
+        .chain_err(|| "Loading new data into the database failed")
 }
 
 fn create_user(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
@@ -90,7 +107,9 @@ fn parse_global_args(matches: &ArgMatches) -> Result<GlobalArgs> {
 
     let database_url = match database_url {
         Some(d) => d,
-        None => bail!("database URL not specified, use the `--database-url` flag or `DATABASE_URL` environment variable.")
+        None => bail!(
+            "database URL not specified, use the `--database-url` flag or `DATABASE_URL` environment variable."
+        ),
     };
 
     Ok(GlobalArgs {
@@ -117,18 +136,92 @@ fn app() -> App<'static, 'static> {
         )
         .subcommand(
             SubCommand::with_name("create-user")
-                .arg(Arg::with_name("username").takes_value(true).required(true).help("The new user's username"))
-                .arg(Arg::with_name("password").takes_value(true).required(true).help("The new user's password"))
-                .arg(Arg::with_name("admin").short("a").long("admin").help("Make the user an administrator"))
+                .arg(
+                    Arg::with_name("username")
+                        .takes_value(true)
+                        .required(true)
+                        .help("The new user's username"),
+                )
+                .arg(
+                    Arg::with_name("password")
+                        .takes_value(true)
+                        .required(true)
+                        .help("The new user's password"),
+                )
+                .arg(
+                    Arg::with_name("admin")
+                        .short("a")
+                        .long("admin")
+                        .help("Make the user an administrator"),
+                )
                 .about("Create a new user."),
         )
         .subcommand(SubCommand::with_name("list-users").about("List all users."))
         .subcommand(SubCommand::with_name("dump-db").about("Dump the database contents as JSON."))
-        .subcommand(SubCommand::with_name("load-db").about("Load data into the database.")
-        .arg(Arg::with_name("in-file")
-            .short("i")
-            .long("in-file")
-            .takes_value(true)
-            .help("The file to read from (defaults to stdin)"))
+        .subcommand(
+            SubCommand::with_name("load-db")
+                .about("Load data into the database.")
+                .arg(
+                    Arg::with_name("in-file")
+                        .short("i")
+                        .long("in-file")
+                        .takes_value(true)
+                        .help("The file to read from (defaults to stdin)"),
+                ),
         )
+        .subcommand(
+            SubCommand::with_name("time-summary")
+                .about("Get a summary of timesheet entries")
+                .arg(
+                    Arg::with_name("count")
+                        .short("n")
+                        .long("count")
+                        .takes_value(true)
+                        .help("Only show the last `n` entries"),
+                )
+                .arg(
+                    Arg::with_name("format")
+                        .short("f")
+                        .long("format")
+                        .takes_value(true)
+                        .default_value("text")
+                        .possible_values(&["text", "json"])
+                        .help("Format to use when printing the summary"),
+                ),
+        )
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Format {
+    PlainText,
+    Json,
+}
+
+impl Format {
+    fn print_times(&self, times: &[TimeSheetEntry]) -> Result<()> {
+        match *self {
+            Format::Json => {
+                let mut stdout = io::stdout();
+                serde_json::to_writer_pretty(&mut stdout, times)?;
+
+                Ok(())
+            }
+            Format::PlainText => {
+                println!("{:#?}", times);
+                Ok(())
+            }
+        }
+    }
+}
+
+impl FromStr for Format {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Format> {
+        match s {
+            "text" => Ok(Format::PlainText),
+            "json" => Ok(Format::Json),
+            _ => Err("Unknown format".into())
+        }
+    }
 }

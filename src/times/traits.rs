@@ -18,6 +18,8 @@ pub trait Times {
 
 impl Times for DbConn {
     fn time_summary(&self) -> Result<Vec<TimeSheetEntry>> {
+        debug!("Generating timesheet summary");
+
         let entries: Result<Vec<TimeSheetEntry>> = self.find_all(TIMESHEET_ENTRY_NAME)?.collect();
         let mut entries = entries?;
 
@@ -25,6 +27,8 @@ impl Times for DbConn {
             entry.morning.clear();
             entry.afternoon.clear();
         }
+
+        debug!("Summary contains {} entries", entries.len());
 
         Ok(entries)
     }
@@ -52,19 +56,22 @@ impl Times for DbConn {
     }
 
     fn delete_entry(&mut self, id: ObjectId) -> Result<()> {
+        debug!("Deleting timesheet with id of {}", id);
+
         let write_concerns = WriteConcern {
             j: true,
             fsync: true,
             ..Default::default()
         };
 
-        let filter = doc!{"_id" => id};
+        let filter = doc!{"_id" => (id.clone())};
         let delete_result = self.collection(TIMESHEET_ENTRY_NAME)
             .delete_one(filter, Some(write_concerns))?;
 
         if delete_result.deleted_count == 1 {
             Ok(())
         } else {
+            warn!("Timesheet entry didn't exist (id: {})", id);
             Err("No entry deleted".into())
         }
     }
