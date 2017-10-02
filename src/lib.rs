@@ -26,6 +26,8 @@ extern crate uuid;
 extern crate rand;
 
 
+#[macro_use]
+mod macros;
 mod db;
 pub mod sessions;
 pub mod traits;

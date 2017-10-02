@@ -6,5 +6,6 @@ error_chain! {
         Json(::serde_json::Error);
         Bcrypt(::bcrypt::BcryptError);
         Mongo(::mongodb::Error);
+        RocketConfig(::rocket::config::ConfigError);
     }
 }

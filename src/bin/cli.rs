@@ -5,6 +5,7 @@ extern crate error_chain;
 #[macro_use]
 extern crate clap;
 extern crate dotenv;
+#[macro_use]
 extern crate website;
 
 use std::env;
@@ -17,23 +18,6 @@ use website::errors::*;
 use website::DbConn;
 use website::traits::*;
 
-
-macro_rules! backtrace {
-    ($result:expr) => {
-        match $result {
-            Err(e) => {
-                eprintln!("Error: {}", e);
-
-                for cause in e.iter().skip(1) {
-                    eprintln!("\tCaused by: {}", cause);
-                }
-
-                process::exit(1);
-            }
-            Ok(v) => v,
-        }
-    };
-}
 
 fn main() {
     let matches = app().get_matches();

@@ -1,4 +1,5 @@
-use rocket::{self, Rocket};
+use rocket::{Config, Rocket};
+use rocket::config::Environment;
 use rocket::http::Cookies;
 use rocket::request::Form;
 use rocket::response::{NamedFile, Redirect};
@@ -12,16 +13,24 @@ use traits::Auth;
 use errors::*;
 
 
-pub fn server(db_url: &str) -> Rocket {
+pub fn server_with_config(db_url: &str, cfg: Config, log: bool) -> Result<Rocket> {
     dotenv::dotenv().ok();
-    let database = db::connect(db_url).unwrap();
+    let database = db::connect(db_url)?;
     let session_manager = SessionManager::new();
 
-    rocket::ignite()
-        .manage(database)
-        .manage(session_manager)
-        .mount("/", routes![home, admin, login, login_form, static_files])
-        .attach(Template::fairing())
+    Ok(
+        Rocket::custom(cfg, log)
+            .manage(database)
+            .manage(session_manager)
+            .mount("/", routes![home, admin, login, login_form, static_files])
+            .attach(Template::fairing()),
+    )
+}
+
+pub fn server(db_url: &str) -> Result<Rocket> {
+    let env = Environment::active()?;
+    let cfg = Config::new(env)?;
+    server_with_config(db_url, cfg, env.is_dev())
 }
 
 #[get("/")]

@@ -6,6 +6,7 @@ use bcrypt::{self, DEFAULT_COST};
 use uuid::Uuid;
 use mongodb::{Client, ThreadedClient};
 use mongodb::db::ThreadedDatabase;
+use mongodb::common::WriteConcern;
 use serde_json;
 use bson::Document;
 
@@ -35,8 +36,8 @@ pub struct DatabaseContents {
 
 impl DataStore for DbConn {
     fn dump_database(&self, writer: &mut Write) -> Result<()> {
-        let users = self.find_many("users", doc!{})?
-            .collect::<Result<Vec<User>>>()?;
+        let users: Result<Vec<User>> = self.find_all("users")?.collect();
+        let users = users?;
 
         let db_contents = DatabaseContents { users };
         serde_json::to_writer_pretty(writer, &db_contents)?;
@@ -84,9 +85,15 @@ impl Auth for DbConn {
             admin: is_admin,
         };
 
+        // make sure we block until the new user has been written to disk
+        let write_concerns = WriteConcern {
+            j: true,
+            fsync: true,
+            ..Default::default()
+        };
         self.db("website")
             .collection("users")
-            .insert_one(user.clone().into(), None)?;
+            .insert_one(user.clone().into(), Some(write_concerns))?;
 
         debug!("User created");
 
@@ -95,9 +102,22 @@ impl Auth for DbConn {
 
     fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>> {
         debug!("Validating username and password for {:?}", username);
-        let hash = bcrypt::hash(password, DEFAULT_COST)?;
 
-        let filter = doc!{"name" => (username), "password_hash" => (hash)};
-        self.find_by("users", filter)
+        let filter = doc!{"name" => (username)};
+        let got = self.find_by::<User>("users", filter)?;
+
+        match got {
+            Some(user) => if bcrypt::verify(&password, &user.password_hash)? {
+                debug!("Username and password valid for {:?}", user.name);
+                Ok(Some(user))
+            } else {
+                debug!("Incorrect password for {:?}", username);
+                Ok(None)
+            },
+            None => {
+                debug!("User not found: {:?}", username);
+                Ok(None)
+            }
+        }
     }
 }

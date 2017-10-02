@@ -1,7 +1,15 @@
-use std::process::{Child, Command};
+use std::process::Command;
+use std::sync::{Once, ONCE_INIT};
+use env_logger;
 use website::errors::*;
 use rand::{self, Rng};
 
+pub fn init_logging() {
+    static THING: Once = ONCE_INIT;
+    THING.call_once(|| {
+        env_logger::init().ok();
+    });
+}
 
 pub struct Docker {
     image_hash: String,
@@ -10,6 +18,8 @@ pub struct Docker {
 
 impl Docker {
     pub fn new() -> Result<Docker> {
+        init_logging();
+
         let mut rng = rand::thread_rng();
         let port: u16 = rng.gen_range(10_000, u16::max_value());
 
