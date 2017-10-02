@@ -12,8 +12,8 @@ use bson::Document;
 use errors::*;
 
 
-pub fn connect(db_url: &str) -> Result<Client> {
-    Client::with_uri(db_url).chain_err(|| "Couldn't connect to the database")
+pub fn connect<S: AsRef<str>>(db_url: S) -> Result<Client> {
+    Client::with_uri(db_url.as_ref()).chain_err(|| "Couldn't connect to the database")
 }
 
 
@@ -82,11 +82,7 @@ impl DbConn {
     where
         T: TryFrom<Document, Error = Error> + Debug + 'static,
     {
-        trace!(
-            "Finding many from {:?} with filter {:?}",
-            name,
-            filter
-        );
+        trace!("Finding many from {:?} with filter {:?}", name, filter);
 
         let cursor = self.collection(name).find(filter, None)?;
         let items = cursor.map(|item| {

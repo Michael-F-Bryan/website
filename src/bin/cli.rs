@@ -63,6 +63,7 @@ fn main() {
 fn dump_database(conn: DbConn) -> Result<()> {
     let mut stdout = ::std::io::stdout();
     conn.dump_database(&mut stdout)
+    .chain_err(|| "Couldn't dump the database contents to the console")
 }
 
 fn load_database(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
@@ -77,7 +78,7 @@ fn load_database(mut conn: DbConn, args: &ArgMatches) -> Result<()> {
     let mut buffer = Vec::new();
     input.read_to_end(&mut buffer).chain_err(|| "Reading failed")?;
 
-    conn.load_database(&buffer)
+    conn.load_database(&buffer).chain_err(|| "Loading new data into the database failed")
 }
 
 fn create_user(mut conn: DbConn, args: &ArgMatches) -> Result<()> {

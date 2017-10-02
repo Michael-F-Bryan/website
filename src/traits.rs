@@ -14,7 +14,7 @@ use db::DbConn;
 use errors::*;
 
 
-pub trait Auth: DataStore {
+pub trait Auth {
     fn get_user_by_id(&self, user_id: Uuid) -> Result<Option<User>>;
     fn new_user(&mut self, username: &str, password: &str, is_admin: bool) -> Result<User>;
     fn validate_user(&self, username: &str, password: &str) -> Result<Option<User>>;
@@ -27,10 +27,10 @@ pub trait DataStore {
     fn load_database(&mut self, data: &[u8]) -> Result<()>;
 }
 
-/// The contents of *everything* in a database.
+/// An in-memory representation of the entire contents of the database.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-struct DatabaseContents {
-    users: Vec<User>,
+pub struct DatabaseContents {
+    pub users: Vec<User>,
 }
 
 impl DataStore for DbConn {
