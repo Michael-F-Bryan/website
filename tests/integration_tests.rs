@@ -26,12 +26,18 @@ fn round_trip_loading_and_dumping() {
     let mut conn = DbConn(website::connect(db.database_url()).unwrap());
     let original = DatabaseContents {
         users: rand::thread_rng().gen_iter().take(10).collect(),
+        timesheet_entries: rand::thread_rng().gen_iter().take(10).collect(),
     };
     let serialized = serde_json::to_vec(&original).unwrap();
 
     conn.load_database(&serialized).unwrap();
 
-    let got = dump_db(&conn).unwrap();
+    let mut got = dump_db(&conn).unwrap();
+
+    // zero out the IDs because they would have been set by the db
+    for entry in &mut got.timesheet_entries {
+        entry.id = None;
+    }
     assert_eq!(got, original);
 }
 

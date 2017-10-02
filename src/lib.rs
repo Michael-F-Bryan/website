@@ -34,6 +34,7 @@ pub mod traits;
 pub mod errors;
 pub mod models;
 pub mod endpoints;
+pub mod times;
 
 pub use endpoints::server;
 pub use db::{connect, DbConn};
