@@ -7,13 +7,19 @@
 <!-- -->
 
 {% block content %}
-<h1>Please Log In</h1>
-<form action="/login" method="post">
-    <label for="username">Username</label>
-    <input type="text" name="username" id="username">
+<div class="login-container">
+    <h1>Login</h1>
+    <form action="/login" method="post">
+        <div class="login-row">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Your Username">
+        </div>
+        <div class="login-row">
+            <label for="password">Password</label>
+            <input type="password" id="password">
+        </div>
+        <button type="submit" class="login-submit">Submit</button>
+    </form>
+</div>
 
-    <label for="password">Username</label>
-    <input type="password" name="password" id="password">
-    <input type="submit" value="Submit" />
-</form>
 {% endblock content %}
