@@ -6,6 +6,8 @@ extern crate chrono;
 extern crate clap;
 extern crate env_logger;
 #[macro_use]
+extern crate rocket_contrib;
+#[macro_use]
 extern crate log;
 extern crate rocket;
 extern crate serde;
@@ -20,6 +22,6 @@ fn main() {
     utils::initialize_logging(matches.occurrences_of("verbosity"));
 
     rocket::ignite()
-        .mount("/", routes![static_files::index])
+        .mount("/", routes![static_files::index, static_files::static_assets])
         .launch();
 }
