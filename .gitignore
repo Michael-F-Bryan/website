@@ -1,6 +1,5 @@
-__pycache__
-*.pyc
 *.db
-static
-*.retry
-*.log
+target/
+**/*.rs.bk
+Cargo.lock
+node_modules/
