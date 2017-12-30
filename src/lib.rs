@@ -2,6 +2,8 @@
 #![feature(use_extern_macros)]
 #![plugin(rocket_codegen)]
 
+#[macro_use]
+extern crate diesel;
 extern crate log;
 extern crate rocket;
 #[macro_use]

@@ -6,3 +6,4 @@ static
 *.log
 /target/
 **/*.rs.bk
+.env
