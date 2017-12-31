@@ -1,12 +1,12 @@
-{% macro navbar() %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">Navbar</a>
+{% macro navbar(username) %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <a class="navbar-brand" href="/">Michael-F-Bryan</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
         aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
                 <a class="nav-link" href="#">Home
                     <span class="sr-only">(current)</span>
@@ -29,6 +29,13 @@
                 </div>
             </li>
         </ul>
+        <div class="navbar-nav nav-item">
+            {% if username %}
+            <a class="nav-link" href="/logout">Logout ({{ username }})</a>
+            {% else %}
+            <a class="nav-link" href="/login">Login</a>
+            {% endif %}
+        </div>
     </div>
 </nav>
 {% endmacro navbar %}

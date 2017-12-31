@@ -2,6 +2,7 @@ use failure::{self, Error, ResultExt};
 use diesel;
 use diesel::prelude::*;
 use bcrypt;
+use diesel::pg::PgConnection;
 
 use database::User;
 use database::schema::users;
@@ -13,7 +14,7 @@ pub trait Database {
 
 impl Database for PgConnection {
     fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {
-        let user: User = users::table
+        let mut user: User = users::table
             .filter(users::username.eq(&username))
             .first(self)
             .context("The user doesn't exist")?;
@@ -22,6 +23,8 @@ impl Database for PgConnection {
             .context("Unable to verify passwords with bcrypt")?;
 
         if is_valid {
+            // manually erase the password hash
+            user.password_hash.clear();
             Ok(user)
         } else {
             Err(failure::err_msg("Invalid password"))

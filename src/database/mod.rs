@@ -10,6 +10,9 @@
 pub mod schema;
 mod models;
 mod traits;
+mod utils;
 
 pub use self::models::User;
 pub use self::traits::Database;
+
+pub use self::utils::{Postgres, PostgresPool};

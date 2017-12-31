@@ -1,12 +1,13 @@
-use std::path::{Path, PathBuf};
-use std::ops::Deref;
+//! The various endpoints and utilities for the website server.
 
-use rocket::{self, Outcome, Request, Rocket, State};
-use rocket::http::Status;
+pub mod auth;
+
+use std::path::{Path, PathBuf};
+
+use rocket::{self, Request, Rocket};
 use rocket::response::NamedFile;
-use rocket::request::{self, FromRequest};
-use rocket_contrib::Template;
-use database::Database;
+use rocket_contrib::{Template, Value};
+use self::auth::LoggedInUser;
 
 /// Create a web server with all endpoints set up and error handlers configured,
 /// you just need to add the backing database as [Managed State].
@@ -15,14 +16,15 @@ use database::Database;
 pub fn create_server() -> Rocket {
     Rocket::ignite()
         .catch(errors![not_found])
-        .mount("/", routes![home])
+        .mount("/", routes![home, static_assets])
+        .mount("/", auth::routes())
         .attach(Template::fairing())
 }
 
 /// The 404 handler.
 #[error(404)]
 pub fn not_found(_: &Request) -> Template {
-    let context = json!{{}};
+    let context = json!{{"username": null}};
     Template::render("not_found", context)
 }
 
@@ -34,33 +36,16 @@ pub fn static_assets(file: PathBuf) -> Option<NamedFile> {
 
 /// The homepage.
 #[get("/")]
-pub fn home() -> Template {
-    let context = json!{{}};
-    Template::render("home", context)
+pub fn home(user: Option<LoggedInUser>) -> Template {
+    let ctx = base_context(user);
+    Template::render("home", ctx)
 }
 
-/// The interface used
-pub trait DatabasePool {
-    fn database(&self) -> Box<Database>;
-}
-
-/// A connection guard providing access to the database.
-pub struct DbConn(Box<Database>);
-
-impl Deref for DbConn {
-    type Target = Database;
-
-    fn deref(&self) -> &Self::Target {
-        self.0.deref()
-    }
-}
-
-impl<'a, 'r> FromRequest<'a, 'r> for DbConn {
-    type Error = ();
-
-    fn from_request(_request: &'a Request<'r>) -> request::Outcome<DbConn, ()> {
-        unimplemented!()
-        // let pool = request.guard::<State<Pool>>()?;
-        // Outcome::Success(DbConn(pool.database()))
-    }
+fn base_context<L>(user: Option<L>) -> Value
+where
+    L: AsRef<str>,
+{
+    json!{{
+        "username": user.map(|u| u.as_ref().to_string())
+    }}
 }
