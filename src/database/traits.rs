@@ -11,7 +11,7 @@ pub trait Database {
     fn create_user(&self, username: &str, password: &str, is_admin: bool) -> Result<User, Error>;
 }
 
-impl Database for SqliteConnection {
+impl Database for PgConnection {
     fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {
         let user: User = users::table
             .filter(users::username.eq(&username))
@@ -55,30 +55,5 @@ impl Database for SqliteConnection {
             .first(self)?;
 
         Ok(got)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use diesel::SqliteConnection;
-    use diesel_migrations;
-    use database::schema::users::dsl::*;
-
-    #[test]
-    fn create_a_user() {
-        let db = SqliteConnection::establish(":memory:").unwrap();
-        diesel_migrations::run_pending_migrations(&db).unwrap();
-
-        let num_users: i64 = users.count().get_result(&db).unwrap();
-        assert_eq!(num_users, 0);
-
-        let got = db.create_user("michael", "password", true).unwrap();
-
-        assert_eq!(got.username, "michael");
-        assert!(got.is_admin);
-
-        let num_users: i64 = users.count().get_result(&db).unwrap();
-        assert_eq!(num_users, 1);
     }
 }

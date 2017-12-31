@@ -12,6 +12,7 @@ diesel = { version = "1.0.0-rc1", features = ["postgres", "sqlite"] }
 bcrypt = "0.1.5"
 failure = "0.1.1"
 failure_derive = "0.1.1"
+uuid = { version = "0.5.1", features = ["serde", "v4"] }
 
 [dev-dependencies]
 diesel_migrations = "1.0.0-rc1"
