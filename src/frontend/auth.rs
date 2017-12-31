@@ -10,7 +10,7 @@ use log;
 
 /// All authentication endpoints.
 pub fn routes() -> Vec<Route> {
-    routes![login, submit_login]
+    routes![login, submit_login, logout]
 }
 
 #[derive(Serialize, FromForm)]
@@ -19,10 +19,24 @@ pub struct LoginRequest {
     password: String,
 }
 
-#[get("/login")]
-pub fn login(user: Option<LoggedInUser>) -> Template {
+#[get("/login", rank = 0)]
+pub fn login_authenticated(user: LoggedInUser) -> Template {
     let ctx = super::base_context(user);
     Template::render("login_page", ctx)
+}
+
+#[get("/login", rank = 1)]
+pub fn login() -> Template {
+    Template::render("login_page", json!{{"username": null}})
+}
+
+#[get("/logout")]
+pub fn logout(user: LoggedInUser, mut cookies: Cookies) -> Redirect {
+    if let Some(c) = cookies.get_private("username") {
+        cookies.remove_private(c);
+    }
+
+    Redirect::to("/")
 }
 
 #[post("/login", data = "<req>")]
@@ -37,8 +51,8 @@ pub fn submit_login(req: Form<LoginRequest>, conn: Postgres, mut cookies: Cookie
             cookies.add_private(auth_token);
             Redirect::to("/")
         }
-        Err(_) => {
-            log::warn!("Failed login for {}", lr.username);
+        Err(e) => {
+            log::warn!("Failed login for {:?} ({})", lr.username, e);
             Redirect::to("/login")
         }
     }
@@ -51,17 +65,20 @@ impl LoggedInUser {
     pub fn new<U: Into<String>>(username: U) -> LoggedInUser {
         LoggedInUser(username.into())
     }
+
+    pub fn from_cookies(mut cookies: Cookies) -> Option<LoggedInUser> {
+        cookies
+            .get_private("username")
+            .map(|cookie| LoggedInUser::new(cookie.value()))
+    }
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<LoggedInUser, ()> {
-        match request.cookies().get_private("username") {
-            Some(cookie) => {
-                log::debug!("Found auth token for {}", cookie.value());
-                Outcome::Success(LoggedInUser::new(cookie.value()))
-            }
+        match LoggedInUser::from_cookies(request.cookies()) {
+            Some(user) => Outcome::Success(user),
             None => Outcome::Failure((Status::Unauthorized, ())),
         }
     }

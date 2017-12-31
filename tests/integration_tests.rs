@@ -34,29 +34,25 @@ fn log_in_as_normal_user() {
     let server = test_server().unwrap();
     let client = Client::new(server).unwrap();
 
+    // the user tries to log in as admin (password: admin)
     let req = client
         .post("/login")
         .header(ContentType::Form)
         .body("username=admin&password=admin");
     let response = req.dispatch();
 
+    // they see that the server redirects them back to "/"
     assert_eq!(response.status(), Status::SeeOther);
     let redirected_to = response.headers().get_one("Location").unwrap();
     assert_eq!(redirected_to, "/");
-    let mut set_cookie: Cookie = response
+
+    // and set a cookie
+    let set_cookie = response
         .headers()
         .get_one("Set-Cookie")
-        .expect("The server should have set an auth cookie")
-        .parse()
-        .unwrap();
-    set_cookie.set_secure(true);
+        .and_then(|c| c.parse::<Cookie>().ok());
 
-    let mut home_page = client.get("/").cookie(set_cookie).dispatch();
-    assert_eq!(home_page.status(), Status::Ok);
-
-    let body = home_page.body_string().unwrap();
-    println!("{}", body);
-    assert!(body.contains("Logout (admin)"));
+    assert!(set_cookie.is_some());
 }
 
 #[test]

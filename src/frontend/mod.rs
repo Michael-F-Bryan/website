@@ -35,17 +35,23 @@ pub fn static_assets(file: PathBuf) -> Option<NamedFile> {
 }
 
 /// The homepage.
-#[get("/")]
-pub fn home(user: Option<LoggedInUser>) -> Template {
+#[get("/", rank = 0)]
+pub fn home_authenticated(user: LoggedInUser) -> Template {
     let ctx = base_context(user);
     Template::render("home", ctx)
 }
 
-fn base_context<L>(user: Option<L>) -> Value
+/// The homepage.
+#[get("/", rank = 1)]
+pub fn home() -> Template {
+    Template::render("home", json!{{"username": null}})
+}
+
+fn base_context<L>(user: L) -> Value
 where
     L: AsRef<str>,
 {
     json!{{
-        "username": user.map(|u| u.as_ref().to_string())
+        "username": user.as_ref(),
     }}
 }

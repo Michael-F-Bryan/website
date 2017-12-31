@@ -10,6 +10,7 @@ use database::schema::users;
 pub trait Database {
     fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error>;
     fn create_user(&self, username: &str, password: &str, is_admin: bool) -> Result<User, Error>;
+    fn list_users(&self) -> Result<Vec<User>, Error>;
 }
 
 impl Database for PgConnection {
@@ -56,6 +57,18 @@ impl Database for PgConnection {
         let got: User = users::table
             .filter(users::username.eq(&username))
             .first(self)?;
+
+        Ok(got)
+    }
+
+    fn list_users(&self) -> Result<Vec<User>, Error> {
+        let mut got: Vec<User> = users::table
+            .load(self)
+            .context("Unable to fetch user list")?;
+
+        for user in &mut got {
+            user.password_hash.clear();
+        }
 
         Ok(got)
     }
