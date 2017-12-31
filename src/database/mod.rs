@@ -12,7 +12,7 @@ mod models;
 mod traits;
 mod utils;
 
-pub use self::models::User;
+pub use self::models::{TimesheetEntry, User};
 pub use self::traits::Database;
 
 pub use self::utils::{Postgres, PostgresPool};

@@ -1,8 +1,10 @@
+#![recursion_limit = "128"]
 #![feature(plugin, custom_derive)]
 #![feature(use_extern_macros)]
 #![plugin(rocket_codegen)]
 
 extern crate bcrypt;
+extern crate chrono;
 #[macro_use]
 extern crate diesel;
 extern crate failure;
