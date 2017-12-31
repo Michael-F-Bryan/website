@@ -7,3 +7,4 @@ static
 /target/
 **/*.rs.bk
 .env
+*.sqlite

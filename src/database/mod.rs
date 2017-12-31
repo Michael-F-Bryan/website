@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 /// Automatically generated database bindings used with [Diesel].
 ///
 /// This is produced using the Diesel CLI tool:
@@ -10,10 +8,8 @@ use std::sync::Arc;
 ///
 /// [Diesel]: https://diesel.rs/
 pub mod schema;
-mod users;
+mod models;
+mod traits;
 
-pub use self::users::{NewUser, User};
-
-pub trait Database {}
-
-impl<D: Database> Database for Arc<D> {}
+pub use self::models::User;
+pub use self::traits::Database;
