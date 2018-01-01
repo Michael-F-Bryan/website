@@ -1,6 +1,6 @@
 extern crate website;
 
-use website::database::{Database, PostgresPool};
+use website::database::PostgresPool;
 
 #[test]
 fn create_a_user() {

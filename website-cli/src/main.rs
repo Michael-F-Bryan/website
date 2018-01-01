@@ -19,7 +19,7 @@ use log::LevelFilter;
 use env_logger::Builder;
 use structopt::StructOpt;
 use failure::Error;
-use website::database::{Database, PostgresPool, User};
+use website::database::{PostgresPool, User};
 
 pub mod embedded_migrations {
     embed_migrations!("../migrations");
@@ -129,7 +129,7 @@ impl Cmd {
 
             Cmd::RunMigrations {} => {
                 info!("Running pending migrations");
-                embedded_migrations::run(&*conn)?;
+                embedded_migrations::run(conn.inner())?;
             }
         }
 

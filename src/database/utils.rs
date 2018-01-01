@@ -3,48 +3,10 @@ use std::process::Command;
 use failure::{self, Error, ResultExt};
 use uuid::Uuid;
 use diesel::prelude::*;
-use rocket::{Outcome, Request, State};
-use rocket::http::Status;
-use rocket::request::{self, FromRequest};
 use r2d2_diesel::ConnectionManager;
-use r2d2::{Pool, PooledConnection};
-use log;
+use r2d2::Pool;
 
-use database::schema::users::dsl::*;
-use database::Database;
-
-/// A small helper which augments a `PgConnection` with some useful methods.
-pub struct Postgres(PooledConnection<ConnectionManager<PgConnection>>);
-
-impl Postgres {
-    pub fn num_users(&self) -> Result<usize, Error> {
-        let got: i64 = users.count().get_result(self.deref())?;
-        Ok(got as usize)
-    }
-}
-
-impl Deref for Postgres {
-    type Target = PgConnection;
-
-    fn deref(&self) -> &Self::Target {
-        self.0.deref()
-    }
-}
-
-impl<'a, 'r> FromRequest<'a, 'r> for Postgres {
-    type Error = ();
-
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<Postgres, ()> {
-        let pool = request.guard::<State<PostgresPool>>()?;
-        match pool.connection() {
-            Ok(conn) => Outcome::Success(conn),
-            Err(e) => {
-                log::warn!("Error fetching database connection: {}", e);
-                Outcome::Failure((Status::InternalServerError, ()))
-            }
-        }
-    }
-}
+use database::Postgres;
 
 /// A connection pool backed by a Postgres database.
 pub struct PostgresPool(pub Pool<ConnectionManager<PgConnection>>);
@@ -93,8 +55,8 @@ impl PostgresPool {
     pub fn with_fixtures() -> Result<PostgresPool, Error> {
         let pool = PostgresPool::temporary()?;
 
-        let conn = pool.0.get()?;
-        apply_fixtures(&*conn)?;
+        let conn = pool.connection()?;
+        apply_fixtures(&conn)?;
 
         Ok(pool)
     }
@@ -107,7 +69,7 @@ impl PostgresPool {
     }
 }
 
-fn apply_fixtures<D: Database>(db: &D) -> Result<(), Error> {
+fn apply_fixtures(db: &Postgres) -> Result<(), Error> {
     db.create_user("admin", "admin", true)?;
     db.create_user("michael", "password", false)?;
 

@@ -5,7 +5,7 @@ use rocket::request::{self, Form, FromRequest, Request};
 use rocket::response::Redirect;
 use rocket_contrib::Template;
 use rocket::http::{Cookie, Cookies};
-use database::{Database, Postgres};
+use database::Postgres;
 use frontend::utils::Cached;
 use log;
 
