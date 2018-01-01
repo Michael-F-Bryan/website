@@ -15,14 +15,8 @@
             <li class="nav-item">
                 <a class="nav-link" href="/resume">Resume</a>
             </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="/times" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">Timesheets</a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                    <a class="dropdown-item" href="/times">Overview</a>
-                    <a class="dropdown-item" href="/times/entries">Timesheet Entries</a>
-                    <a class="dropdown-item" href="/times/slice">Timesheet Slices</a>
-                </div>
+            <li class="nav-item">
+                <a class="nav-link" href="/times">Timesheets</a>
             </li>
         </ul>
         <div class="navbar-nav nav-item">

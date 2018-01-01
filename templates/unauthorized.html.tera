@@ -1,0 +1,19 @@
+{% extends "base" %}
+
+<!-- -->
+
+{% block title %}401 Unauthorized{% endblock title %}
+
+<!-- -->
+
+{% block content %}
+<h1 class="row">401 Unauthorized</h1>
+
+<p>Oops, it looks like you need to
+    <a href="/login">log in</a> before you can access this page.</p>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/RfiQYRn7fBg?autoplay=1" frameborder="0" gesture="media"
+    allow="encrypted-media" allowfullscreen>
+    <p>Ah ah ah, you didn't say the magic word!</p>
+</iframe>
+{% endblock content %}

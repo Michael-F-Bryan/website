@@ -2,7 +2,8 @@
 
 use rocket::Route;
 use rocket_contrib::Template;
-use frontend::auth::{LoggedInUser, LoginRequired};
+use frontend::auth::LoggedInUser;
+use frontend::utils::LoginRequired;
 
 /// All timesheet entry endpoints, relative to `/times`.
 pub fn routes() -> Vec<Route> {

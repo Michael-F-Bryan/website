@@ -11,7 +11,6 @@ log = "0.4"
 diesel = { version = "1.0.0-rc1", features = ["postgres", "sqlite", "chrono"] }
 bcrypt = "0.1"
 failure = "0.1"
-failure_derive = "0.1"
 uuid = { version = "0.5", features = ["serde", "v4"] }
 dotenv = "0.10"
 r2d2 = "0.8"

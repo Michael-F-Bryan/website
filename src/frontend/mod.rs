@@ -2,7 +2,8 @@
 
 pub mod auth;
 pub mod times;
-pub mod misc;
+pub mod root;
+pub mod utils;
 
 use rocket::{self, Request, Rocket};
 use rocket_contrib::Template;
@@ -12,18 +13,23 @@ use rocket_contrib::Template;
 ///
 /// [Managed State]: https://rocket.rs/guide/state/#managed-state
 pub fn create_server() -> Rocket {
-    let mut r = Rocket::ignite().catch(errors![not_found]);
+    let mut r = Rocket::ignite().catch(errors![not_found, unauthorized]);
 
-    r = misc::mount_endpoints(r);
+    r = root::mount_endpoints(r);
     r = auth::mount_endpoints(r);
     r = times::mount_endpoints(r);
 
     r.attach(Template::fairing())
 }
 
-/// The 404 handler.
 #[error(404)]
 pub fn not_found(_: &Request) -> Template {
     let context = json!{{"username": null}};
     Template::render("not_found", context)
+}
+
+#[error(401)]
+pub fn unauthorized(_: &Request) -> Template {
+    let context = json!{{"username": null}};
+    Template::render("unauthorized", context)
 }

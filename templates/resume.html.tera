@@ -1,0 +1,19 @@
+{% extends "base" %}
+
+<!-- -->
+
+{% block title %}Resume{% endblock title %}
+
+<!-- -->
+
+{% block content %}
+<h1 class="row">My Resume</h1>
+<div class="embed-responsive embed-responsive-16by9" id="resume-preview" class="row">
+    <object data="/static/resume.pdf" type="application/pdf">
+        <iframe class="embed-responsive-item" src="/static/resume.pdf">
+            This browser does not support PDFs. Please download the PDF to view it:
+            <a href="/static/resume.pdf">Download PDF</a>
+        </iframe>
+    </object>
+</div>
+{% endblock content %}

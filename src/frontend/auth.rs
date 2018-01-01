@@ -1,12 +1,12 @@
 //! Authentication and user management.
 
-use std::ops::Deref;
 use rocket::{Outcome, Rocket};
 use rocket::request::{self, Form, FromRequest, Request};
 use rocket::response::Redirect;
 use rocket_contrib::Template;
-use rocket::http::{Cookie, Cookies, Status};
+use rocket::http::{Cookie, Cookies};
 use database::{Database, Postgres};
+use frontend::utils::Cached;
 use log;
 
 /// All authentication endpoints.
@@ -24,13 +24,13 @@ pub struct LoginRequest {
 }
 
 #[get("/login")]
-pub fn login_authenticated(user: LoggedInUser) -> Template {
-    Template::render("login_page", json!{{"username": user.as_ref()}})
+pub fn login_authenticated(user: LoggedInUser) -> Cached<Template> {
+    Template::render("login_page", json!{{"username": user.as_ref()}}).into()
 }
 
 #[get("/login", rank = 1)]
-pub fn login() -> Template {
-    Template::render("login_page", json!{{"username": null}})
+pub fn login() -> Cached<Template> {
+    Template::render("login_page", json!{{"username": null}}).into()
 }
 
 #[get("/logout")]
@@ -91,28 +91,5 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
 impl AsRef<str> for LoggedInUser {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
-    }
-}
-
-/// A wrapper request guard which will *require* the inner guard to succeed,
-/// returning a 401 Unauthorized otherwise.
-pub struct LoginRequired<T>(pub T);
-
-impl<'a, 'r, T: FromRequest<'a, 'r>> FromRequest<'a, 'r> for LoginRequired<T> {
-    type Error = ();
-
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, ()> {
-        match T::from_request(request) {
-            Outcome::Success(s) => Outcome::Success(LoginRequired(s)),
-            _ => Outcome::Failure((Status::Unauthorized, ())),
-        }
-    }
-}
-
-impl<T> Deref for LoginRequired<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }

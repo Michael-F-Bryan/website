@@ -3,7 +3,8 @@ pub mod slices;
 
 use rocket::Rocket;
 use rocket_contrib::Template;
-use frontend::auth::{LoggedInUser, LoginRequired};
+use frontend::auth::LoggedInUser;
+use frontend::utils::LoginRequired;
 
 pub fn mount_endpoints(r: Rocket) -> Rocket {
     r.mount("/times", routes![overview])

@@ -23,6 +23,8 @@ fn validate_all_endpoints() {
         ("/times/entries/new", true),
         ("/times/slice/new", true),
         ("/static/master.css", false),
+        ("/static/favicon.ico", false),
+        ("/resume", false),
     ];
 
     let server = test_server().unwrap();
