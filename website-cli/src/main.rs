@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate diesel_migrations;
 extern crate dotenv;
 extern crate env_logger;
 extern crate failure;
@@ -13,15 +15,22 @@ use std::env;
 use std::io;
 use std::str::FromStr;
 use std::process;
+use log::LevelFilter;
+use env_logger::Builder;
 use structopt::StructOpt;
 use failure::Error;
 use website::database::{Database, PostgresPool, User};
 
+pub mod embedded_migrations {
+    embed_migrations!("../migrations");
+    pub use self::embedded_migrations::*;
+}
+
 fn main() {
-    env_logger::init();
     dotenv::dotenv().ok();
 
     let cmd = Args::from_args();
+    cmd.init_logging();
 
     debug!("{:?}", cmd);
 
@@ -39,6 +48,8 @@ fn main() {
 pub struct Args {
     #[structopt(short = "d", long = "database-url", help = "String for connecting to a database")]
     database_url: Option<String>,
+    #[structopt(short = "v", long = "verbose", help = "Generate more verbose output")]
+    verbosity: u64,
     #[structopt(subcommand)] cmd: Cmd,
 }
 
@@ -56,21 +67,43 @@ impl Args {
         let db_string = self.database_url()?;
         self.cmd.execute(&db_string)
     }
+
+    fn init_logging(&self) {
+        let mut builder = Builder::new();
+
+        let level = match self.verbosity {
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
+        };
+
+        if let Ok(rust_log) = env::var("RUST_LOG") {
+            builder.parse(&rust_log);
+        } else {
+            builder.filter(None, level);
+        }
+
+        builder.init();
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, StructOpt)]
-#[structopt(name = "command", about = "The command to execute")]
+#[structopt(name = "command")]
 pub enum Cmd {
-    #[structopt(name = "create-user", help = "Create a new user")]
+    #[structopt(name = "create-user", about = "Create a new user")]
     CreateUser {
         username: String,
         password: String,
         #[structopt(short = "a", long = "admin", help = "Make the user an admin")] admin: bool,
     },
-    #[structopt(name = "list-users", help = "List all the available users")]
+    #[structopt(name = "list-users", about = "List all the available users")]
     ListUsers {
-        #[structopt(short = "f", long = "format", default_value = "plain-text")] format: Format,
+        #[structopt(short = "f", long = "format", default_value = "plain-text",
+                    possible_values_raw = "&[\"plain-text\", \"json\", \"p\", \"j\"]")]
+        format: Format,
     },
+    #[structopt(name = "run-migrations", about = "Run all pending migrations")] RunMigrations {},
 }
 
 impl Cmd {
@@ -92,6 +125,11 @@ impl Cmd {
                 info!("Listing users");
                 let users = conn.list_users()?;
                 format.print_users(&users)?;
+            }
+
+            Cmd::RunMigrations {} => {
+                info!("Running pending migrations");
+                embedded_migrations::run(&*conn)?;
             }
         }
 
