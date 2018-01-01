@@ -23,7 +23,7 @@ pub struct LoginRequest {
     password: String,
 }
 
-#[get("/login", rank = 0)]
+#[get("/login")]
 pub fn login_authenticated(user: LoggedInUser) -> Template {
     Template::render("login_page", json!{{"username": user.as_ref()}})
 }

@@ -15,6 +15,51 @@ pub fn test_server() -> Result<Rocket, Error> {
 }
 
 #[test]
+fn validate_all_endpoints() {
+    let endpoints = vec![
+        ("/", false),
+        ("/login", false),
+        ("/times", true),
+        ("/times/entries/new", true),
+        ("/times/slice/new", true),
+        ("/static/master.css", false),
+    ];
+
+    let server = test_server().unwrap();
+    let client = Client::new(server).unwrap();
+
+    for (endpoint, requires_auth) in endpoints {
+        if requires_auth {
+            validate_authenticated(&client, endpoint);
+        } else {
+            validate_unauthenticated(&client, endpoint);
+        }
+    }
+}
+
+fn validate_authenticated(client: &Client, endpoint: &str) {
+    // make an unauthenticated request
+    let response = client.get(endpoint).dispatch();
+    assert_eq!(response.status(), Status::Unauthorized, "{}", endpoint);
+
+    // then add an auth cookie
+    let req = client.get(endpoint);
+    req.inner()
+        .cookies()
+        .add_private(Cookie::new("username", "admin"));
+    // and send the request again
+    let response = req.dispatch();
+    assert_eq!(response.status(), Status::Ok, "{}", endpoint);
+}
+
+fn validate_unauthenticated(client: &Client, endpoint: &str) {
+    let req = client.get(endpoint);
+    let response = req.dispatch();
+
+    assert_eq!(response.status(), Status::Ok, "{}", endpoint);
+}
+
+#[test]
 fn get_the_home_page() {
     let server = test_server().unwrap();
     let client = Client::new(server).unwrap();

@@ -5,7 +5,7 @@ use rocket_contrib::Template;
 use frontend::auth::LoggedInUser;
 
 pub fn mount_endpoints(r: Rocket) -> Rocket {
-    r.mount("/", routes![home, home_authenticated, static_assets])
+    r.mount("/", routes![home_authenticated, home, static_assets])
 }
 
 /// Serves up the static assets under `/static/`.
@@ -15,7 +15,7 @@ pub fn static_assets(file: PathBuf) -> Option<NamedFile> {
 }
 
 /// The homepage.
-#[get("/", rank = 0)]
+#[get("/")]
 pub fn home_authenticated(user: LoggedInUser) -> Template {
     Template::render("home", json!{{"username": user.as_ref()}})
 }

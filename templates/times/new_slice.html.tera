@@ -1,0 +1,20 @@
+{% extends "base" %}
+
+<!-- -->
+
+{% block title %}New Slice{% endblock title %}
+
+<!-- -->
+
+{% block content %}
+<div id="login-container">
+    <h1>New Time Slice</h1>
+    <form action="/login" method="post">
+        <div class="login-row">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" placeholder="Your Username">
+        </div>
+        <button type="submit" class="login-submit">Submit</button>
+    </form>
+</div>
+{% endblock content %}
