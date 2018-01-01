@@ -3,15 +3,17 @@
 pub mod entries;
 pub mod slices;
 
-use rocket::Rocket;
+use rocket::{Route};
 use rocket_contrib::Template;
 use frontend::auth::LoggedInUser;
-use frontend::utils::LoginRequired;
+use frontend::utils::{self, LoginRequired};
 
-pub fn mount_endpoints(r: Rocket) -> Rocket {
-    r.mount("/times", routes![overview])
-        .mount("/times/entries", entries::routes())
-        .mount("/times/slice", slices::routes())
+pub fn endpoints() -> Vec<Route> {
+    let mut routes = routes![overview];
+    routes.extend(utils::prefix_routes("/entries", entries::routes()));
+    routes.extend(utils::prefix_routes("/slice", slices::routes()));
+
+    routes
 }
 
 /// Generate a general overview of the logged-in user's timesheets.

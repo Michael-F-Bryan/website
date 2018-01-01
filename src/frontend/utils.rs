@@ -3,9 +3,25 @@
 use std::ops::Deref;
 use rocket::request::{self, FromRequest};
 use rocket::http::Status;
-use rocket::{Outcome, Request, Response};
+use rocket::{Outcome, Request, Response, Route};
 use rocket::response::Responder;
 use rocket::http::hyper::header::{CacheControl, CacheDirective};
+use rocket::http::uri::URI;
+
+/// Generate a new list of routes who's URL is prefixed with the provided
+/// string.
+///
+/// This is essentially a carbon copy of what `Rocket::mount()` does.
+pub fn prefix_routes(prefix: &str, mut routes: Vec<Route>) -> Vec<Route> {
+    for route in &mut routes {
+        let uri = URI::new(format!("{}/{}", prefix, route.uri));
+
+        route.set_base(prefix);
+        route.set_uri(uri.to_string());
+    }
+
+    routes
+}
 
 /// A wrapper request guard which will *require* the inner guard to succeed,
 /// returning a 401 Unauthorized otherwise.

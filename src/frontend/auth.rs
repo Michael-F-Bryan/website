@@ -1,6 +1,6 @@
 //! Authentication and user management.
 
-use rocket::{Outcome, Rocket};
+use rocket::{Outcome, Route};
 use rocket::request::{self, Form, FromRequest, Request};
 use rocket::response::Redirect;
 use rocket_contrib::Template;
@@ -10,17 +10,14 @@ use frontend::utils::Cached;
 use log;
 
 /// All authentication endpoints.
-pub fn mount_endpoints(r: Rocket) -> Rocket {
-    r.mount(
-        "/",
-        routes![
-            login,
-            login_authenticated,
-            submit_login,
-            logout,
-            logout_not_logged_in
-        ],
-    )
+pub fn endpoints() -> Vec<Route> {
+    routes![
+        login,
+        login_authenticated,
+        submit_login,
+        logout,
+        logout_not_logged_in
+    ]
 }
 
 #[derive(Serialize, FromForm)]

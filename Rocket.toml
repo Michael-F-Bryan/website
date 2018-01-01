@@ -1,6 +1,6 @@
 [development]
 secret_key = "KgMT6eN/DJBQx/FClJRrs9uqpDxO0Ce/waB87FwolYY="
 
-[production.tls]
-certs = "/path/to/certs.pem"
-key = "/path/to/key.pem"
+# [production.tls]
+# certs = "/path/to/certs.pem"
+# key = "/path/to/key.pem"

@@ -1,11 +1,13 @@
 //! The various endpoints and utilities for the website server.
 
+#[macro_use]
+pub mod utils;
 pub mod auth;
 pub mod times;
 pub mod root;
-pub mod utils;
+pub mod errors;
 
-use rocket::{self, Request, Rocket};
+use rocket::Rocket;
 use rocket_contrib::Template;
 
 /// Create a web server with all endpoints set up and error handlers configured,
@@ -13,23 +15,13 @@ use rocket_contrib::Template;
 ///
 /// [Managed State]: https://rocket.rs/guide/state/#managed-state
 pub fn create_server() -> Rocket {
-    let mut r = Rocket::ignite().catch(errors![not_found, unauthorized]);
+    let mut r = Rocket::ignite();
 
-    r = root::mount_endpoints(r);
-    r = auth::mount_endpoints(r);
-    r = times::mount_endpoints(r);
+    r = errors::mount_errors(r);
+
+    r = r.mount("/", root::endpoints())
+        .mount("/", auth::endpoints())
+        .mount("/times", times::endpoints());
 
     r.attach(Template::fairing())
-}
-
-#[error(404)]
-pub fn not_found(_: &Request) -> Template {
-    let context = json!{{"username": null}};
-    Template::render("not_found", context)
-}
-
-#[error(401)]
-pub fn unauthorized(_: &Request) -> Template {
-    let context = json!{{"username": null}};
-    Template::render("unauthorized", context)
 }

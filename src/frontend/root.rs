@@ -1,24 +1,21 @@
 //! Root endpoints like the home page.
 
 use std::path::{Path, PathBuf};
-use rocket::Rocket;
+use rocket::Route;
 use rocket::response::{NamedFile, Redirect};
 use rocket_contrib::Template;
 use frontend::auth::LoggedInUser;
 use frontend::utils::Cached;
 
-pub fn mount_endpoints(r: Rocket) -> Rocket {
-    r.mount(
-        "/",
-        routes![
-            home_authenticated,
-            home,
-            static_assets,
-            resume,
-            resume_authenticated,
-            favicon,
-        ],
-    )
+pub fn endpoints() -> Vec<Route> {
+    routes![
+        home_authenticated,
+        home,
+        static_assets,
+        resume,
+        resume_authenticated,
+        favicon,
+    ]
 }
 
 /// Serves up the static assets under `/static/`.
