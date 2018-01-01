@@ -1,24 +1,24 @@
 //! The various endpoints and utilities for the website server.
 
 pub mod auth;
-
-use std::path::{Path, PathBuf};
+pub mod times;
+pub mod misc;
 
 use rocket::{self, Request, Rocket};
-use rocket::response::NamedFile;
-use rocket_contrib::{Template, Value};
-use self::auth::LoggedInUser;
+use rocket_contrib::Template;
 
 /// Create a web server with all endpoints set up and error handlers configured,
 /// you just need to add the backing database as [Managed State].
 ///
 /// [Managed State]: https://rocket.rs/guide/state/#managed-state
 pub fn create_server() -> Rocket {
-    Rocket::ignite()
-        .catch(errors![not_found])
-        .mount("/", routes![home, static_assets])
-        .mount("/", auth::routes())
-        .attach(Template::fairing())
+    let mut r = Rocket::ignite().catch(errors![not_found]);
+
+    r = misc::mount_endpoints(r);
+    r = auth::mount_endpoints(r);
+    r = times::mount_endpoints(r);
+
+    r.attach(Template::fairing())
 }
 
 /// The 404 handler.
@@ -26,32 +26,4 @@ pub fn create_server() -> Rocket {
 pub fn not_found(_: &Request) -> Template {
     let context = json!{{"username": null}};
     Template::render("not_found", context)
-}
-
-/// Serves up the static assets under `/static/`.
-#[get("/static/<file..>")]
-pub fn static_assets(file: PathBuf) -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/").join(file)).ok()
-}
-
-/// The homepage.
-#[get("/", rank = 0)]
-pub fn home_authenticated(user: LoggedInUser) -> Template {
-    let ctx = base_context(user);
-    Template::render("home", ctx)
-}
-
-/// The homepage.
-#[get("/", rank = 1)]
-pub fn home() -> Template {
-    Template::render("home", json!{{"username": null}})
-}
-
-fn base_context<L>(user: L) -> Value
-where
-    L: AsRef<str>,
-{
-    json!{{
-        "username": user.as_ref(),
-    }}
 }

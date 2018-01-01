@@ -1,6 +1,7 @@
 //! Authentication and user management.
 
-use rocket::{Outcome, Route};
+use std::ops::Deref;
+use rocket::{Outcome, Rocket};
 use rocket::request::{self, Form, FromRequest, Request};
 use rocket::response::Redirect;
 use rocket_contrib::Template;
@@ -9,8 +10,11 @@ use database::{Database, Postgres};
 use log;
 
 /// All authentication endpoints.
-pub fn routes() -> Vec<Route> {
-    routes![login, submit_login, logout]
+pub fn mount_endpoints(r: Rocket) -> Rocket {
+    r.mount(
+        "/",
+        routes![login, login_authenticated, submit_login, logout],
+    )
 }
 
 #[derive(Serialize, FromForm)]
@@ -21,8 +25,7 @@ pub struct LoginRequest {
 
 #[get("/login", rank = 0)]
 pub fn login_authenticated(user: LoggedInUser) -> Template {
-    let ctx = super::base_context(user);
-    Template::render("login_page", ctx)
+    Template::render("login_page", json!{{"username": user.as_ref()}})
 }
 
 #[get("/login", rank = 1)]
@@ -33,6 +36,7 @@ pub fn login() -> Template {
 #[get("/logout")]
 pub fn logout(user: LoggedInUser, mut cookies: Cookies) -> Redirect {
     if let Some(c) = cookies.get_private("username") {
+        log::info!("{} logged out", user.0);
         cookies.remove_private(c);
     }
 
@@ -79,7 +83,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
     fn from_request(request: &'a Request<'r>) -> request::Outcome<LoggedInUser, ()> {
         match LoggedInUser::from_cookies(request.cookies()) {
             Some(user) => Outcome::Success(user),
-            None => Outcome::Failure((Status::Unauthorized, ())),
+            None => Outcome::Forward(()),
         }
     }
 }
@@ -87,5 +91,28 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoggedInUser {
 impl AsRef<str> for LoggedInUser {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
+    }
+}
+
+/// A wrapper request guard which will *require* the inner guard to succeed,
+/// returning a 401 Unauthorized otherwise.
+pub struct LoginRequired<T>(pub T);
+
+impl<'a, 'r, T: FromRequest<'a, 'r>> FromRequest<'a, 'r> for LoginRequired<T> {
+    type Error = ();
+
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, ()> {
+        match T::from_request(request) {
+            Outcome::Success(s) => Outcome::Success(LoginRequired(s)),
+            _ => Outcome::Failure((Status::Unauthorized, ())),
+        }
+    }
+}
+
+impl<T> Deref for LoginRequired<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
