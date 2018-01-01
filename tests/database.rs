@@ -5,7 +5,7 @@ use website::database::PostgresPool;
 #[test]
 fn create_a_user() {
     let pool = PostgresPool::temporary().unwrap();
-    let conn = pool.connection().unwrap();
+    let conn = pool.new_connection().unwrap();
 
     assert_eq!(conn.num_users().unwrap(), 0);
 
@@ -20,7 +20,7 @@ fn create_a_user() {
 #[test]
 fn authenticate_user() {
     let pool = PostgresPool::temporary().unwrap();
-    let conn = pool.connection().unwrap();
+    let conn = pool.new_connection().unwrap();
 
     conn.create_user("michael", "password", true).unwrap();
 

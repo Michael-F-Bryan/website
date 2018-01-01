@@ -109,7 +109,7 @@ pub enum Cmd {
 impl Cmd {
     pub fn execute(&self, db_string: &str) -> Result<(), Error> {
         let db_pool = PostgresPool::new(db_string)?;
-        let conn = db_pool.connection()?;
+        let conn = db_pool.new_connection()?;
 
         match *self {
             Cmd::CreateUser {

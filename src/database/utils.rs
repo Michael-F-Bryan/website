@@ -8,10 +8,11 @@ use r2d2::Pool;
 
 use database::Postgres;
 
-/// A connection pool backed by a Postgres database.
+/// A pool of connections to a postgres database.
 pub struct PostgresPool(pub Pool<ConnectionManager<PgConnection>>);
 
 impl PostgresPool {
+    /// Create a new `PostgresPool` using the provided database URL.
     pub fn new<S: Into<String>>(database_url: S) -> Result<PostgresPool, Error> {
         let manager = ConnectionManager::new(database_url);
         let pool = Pool::new(manager).context("Unable to connect to the database")?;
@@ -55,14 +56,14 @@ impl PostgresPool {
     pub fn with_fixtures() -> Result<PostgresPool, Error> {
         let pool = PostgresPool::temporary()?;
 
-        let conn = pool.connection()?;
+        let conn = pool.new_connection()?;
         apply_fixtures(&conn)?;
 
         Ok(pool)
     }
 
-    /// Get a new connection and wrap it in our `Postgres` helper.
-    pub fn connection(&self) -> Result<Postgres, Error> {
+    /// Get a new connection to the database.
+    pub fn new_connection(&self) -> Result<Postgres, Error> {
         let conn = self.0.get()?;
 
         Ok(Postgres(conn))
