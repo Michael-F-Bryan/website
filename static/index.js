@@ -1,10 +1,9 @@
-// Register a jquery hook which is run when the page loads
-// This should:
-//
-// - Get the current URL path and set the `active` class on the correct 
-//   nav link (if any)
 
-$(document).ready(function() {
+/**
+ * Goes through the links in the navbar and applies the `active` to the one
+ * we're currently on.
+ */
+function setActiveNavItem() {
     let items = $("#nav-list .nav-item")
         .filter((i, item) => {
             return $(item).find(".nav-link")
@@ -19,4 +18,16 @@ $(document).ready(function() {
             return
         }
     }
+}
+
+/**
+ * Activates any tooltips which may be on the page.
+ */
+function activateTooltips() {
+    $('[data-toggle="tooltip"]').tooltip()
+}
+
+$(document).ready(function() {
+    setActiveNavItem()
+    activateTooltips()
 })

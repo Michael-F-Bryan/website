@@ -11,6 +11,7 @@ A simple website to help make my life easier.
     - `/new` - Create a new timesheet entry
     - `/:n` - Show the `n`'th timesheet entry
     - `/:n/edit` - Edit the `n`'th timesheet entry
+    - `/download` - Downloads a JSON blob of all available timesheet entries
   - `/times/slice` - endpoints corresponding to time slices (a collection of 
     entries between two points in time)
     - `/new` - Create a new unique *time slice*

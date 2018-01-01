@@ -13,7 +13,13 @@ use log;
 pub fn mount_endpoints(r: Rocket) -> Rocket {
     r.mount(
         "/",
-        routes![login, login_authenticated, submit_login, logout],
+        routes![
+            login,
+            login_authenticated,
+            submit_login,
+            logout,
+            logout_not_logged_in
+        ],
     )
 }
 
@@ -28,7 +34,7 @@ pub fn login_authenticated(user: LoggedInUser) -> Cached<Template> {
     Template::render("login_page", json!{{"username": user.as_ref()}}).into()
 }
 
-#[get("/login", rank = 1)]
+#[get("/login", rank = 2)]
 pub fn login() -> Cached<Template> {
     Template::render("login_page", json!{{"username": null}}).into()
 }
@@ -41,6 +47,11 @@ pub fn logout(user: LoggedInUser, mut cookies: Cookies) -> Redirect {
     }
 
     Redirect::to("/")
+}
+
+#[get("/logout", rank = 2)]
+pub fn logout_not_logged_in() -> Redirect {
+    Redirect::to("/login")
 }
 
 #[post("/login", data = "<req>")]

@@ -1,3 +1,5 @@
+//! Root endpoints like the home page.
+
 use std::path::{Path, PathBuf};
 use rocket::Rocket;
 use rocket::response::{NamedFile, Redirect};

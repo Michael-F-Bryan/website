@@ -1,3 +1,5 @@
+//! Endpoints related to managing timesheet stuff.
+
 pub mod entries;
 pub mod slices;
 
@@ -12,9 +14,16 @@ pub fn mount_endpoints(r: Rocket) -> Rocket {
         .mount("/times/slice", slices::routes())
 }
 
+/// Generate a general overview of the logged-in user's timesheets.
 #[get("/")]
 pub fn overview(user: LoginRequired<LoggedInUser>) -> Template {
     // TODO: Fetch all timesheet entries
     // TODO: Fetch all time slices
-    Template::render("times/overview", json!{{"username": user.as_ref()}})
+    let ctx = json!{{
+    "username": user.as_ref(),
+    "entries": [],
+    "slices": [],
+    }};
+
+    Template::render("times/overview", ctx)
 }
