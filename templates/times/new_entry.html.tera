@@ -2,19 +2,42 @@
 
 <!-- -->
 
-{% block title %}New Entry{% endblock title %}
+{% block title %}{{ title }}{% endblock title %}
 
 <!-- -->
 
 {% block content %}
-<div id="login-container">
-    <h1>New Timesheet Entry</h1>
-    <form action="/login" method="post">
-        <div class="login-row">
-            <label for="username">Username</label>
-            <input type="text" name="username" id="username" placeholder="Your Username">
+<h1>{{ title }}</h1>
+
+<form id="entry-edit" action="/times/entries/new" method="post">
+    <div class="form-row">
+        <div class="col-md-3 mb-3">
+            <label for="date">Date</label>
+            <input type="date" class="form-control" name="date" id="date" value="{{ default_date }}" required>
         </div>
-        <button type="submit" class="login-submit">Submit</button>
-    </form>
-</div>
+        <div class="col-md-3 mb-3">
+            <label for="start">Start</label>
+            <input type="time" class="form-control" name="start" id="start" value="{{ start_time }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <label for="breaks">Break Duration (mins)</label>
+            <input type="number" class="form-control" name="breaks" id="breaks" min="0" value="{{ breaks }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <label for="end">End</label>
+            <input type="time" class="form-control" name="end" id="end" value="{{ end_time }}">
+        </div>
+        <div id="start-after-end" class="invalid-feedback">You can't finish work before you've started!</div>
+    </div>
+    <div class="form-group">
+        <label for="morning">Morning Activities</label>
+        <textarea class="form-control" rows="6" name="morning" id="morning">{{morning}}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="afternoon">Afternoon Activities</label>
+        <textarea class="form-control" rows="6" name="afternoon" id="afternoon">{{ afternoon }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="reset" class="btn">Reset</button>
+</form>
 {% endblock content %}

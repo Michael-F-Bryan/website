@@ -1,0 +1,18 @@
+{% extends "base" %}
+
+<!-- -->
+
+{% block title %}Internal Server Error{% endblock title %}
+
+<!-- -->
+
+{% block content %}
+<h1>500 Internal Server Error</h1>
+<p>
+    A 500 error occurs when something blows up with our code. Your viewing this does not fix the code. In fact, you're likely
+    pissed off at the moment.
+</p>
+<p>
+    Take solace, a team of highly trained monkeys has been dispatched to try and fix the issue.
+</p>
+{% endblock content %}
