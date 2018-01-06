@@ -1,8 +1,9 @@
 BINARY := website-server
+DOCKER_TAG := michaelfbryan/website
 TARGET := release
 TARGET_DIR := $(shell pwd)/target
 RELEASE_BINARY := $(TARGET_DIR)/$(TARGET)/$(BINARY)
-ASSETS := $(wildcard templates/** static/**)
+ASSETS := $(wildcard static/**) $(wildcard templates/**)
 ROCKET_TOML := Rocket.toml
 
 TEMP_DIR := $(TARGET_DIR)/package
@@ -12,15 +13,20 @@ TEMP_DIR_ROCKET_TOML := $(TEMP_DIR)/$(ROCKET_TOML)
 
 PACKAGED := $(TARGET_DIR)/packaged.zip
 
+package: $(PACKAGED)
+
+docker: package
+	docker build -t $(DOCKER_TAG) .
+
 help:
 	@echo "package              Compile the application and bundle all assets"
 	@echo "                       into a single zip file (target/packaged.zip)"
+	@echo "docker               Create a docker image from the packaged app"
 	@echo "help                 Print this help message"
 
-package: $(PACKAGED)
 
 $(PACKAGED): $(TEMP_DIR_BINARY) $(TEMP_DIR_ASSETS) $(TEMP_DIR_ROCKET_TOML)
-	cd $(TEMP_DIR) && zip -r -9 -u $(PACKAGED) *
+	cd $(TEMP_DIR) && tar -cvzf $(PACKAGED) *
 
 $(TEMP_DIR_BINARY): $(TEMP_DIR) $(RELEASE_BINARY)
 	cp $(RELEASE_BINARY) $(TEMP_DIR_BINARY)
@@ -41,4 +47,5 @@ $(TEMP_DIR_ROCKET_TOML): $(ROCKET_TOML)
 	cp $(ROCKET_TOML) $(TEMP_DIR_ROCKET_TOML)
 
 clean:
-	rm -r $(TEMP_DIR)
+	$(RM) -r $(TEMP_DIR)
+	$(RM) $(PACKAGED)
