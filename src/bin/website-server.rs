@@ -27,6 +27,8 @@ fn run() -> Result<(), Error> {
     if let Ok(db_url) = env::var("DATABASE_URL") {
         let pool = PostgresPool::new(db_url)?;
         server = server.manage(pool);
+    } else {
+        return Err(failure::err_msg("No database specified. Please set the DATABASE_URL variable"));
     }
 
     // the server runs indefinitely, therefore if it ever exits there was

@@ -10,4 +10,4 @@ ADD target/packaged.zip /code
 ENV ROCKET_ENV production
 EXPOSE 80
 
-CMD [ "/code/website-server" ]
+ENTRYPOINT [ "/code/website-server" ]
