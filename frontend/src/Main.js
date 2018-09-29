@@ -4,26 +4,70 @@ import {
   NavLink,
   BrowserRouter
 } from "react-router-dom";
+import {
+    Navbar,
+    NavbarToggler,
+    Nav,
+    NavItem,
+    Collapse,
+} from "reactstrap";
 import Home from "./Home";
-import Stuff from "./Stuff";
-import Contact from "./Contact";
+import Timesheets from "./Timesheets";
+import Login from "./Login";
+import Logout from "./Logout";
+import Resume from "./Resume";
 import "./index.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
  
 export default class Main extends Component {
+  constructor(props) {
+    super(props);
+
+    this.toggle = this.toggle.bind(this);
+    this.state = {
+      isOpen: false,
+    };
+  }
+
+  toggle() {
+    this.setState({
+      isOpen: !this.state.isOpen
+    });
+  }
+
   render() {
+      const { username } = this.state;
+      const hasUser = username && username !== "";
+
     return (
       <BrowserRouter>
         <div>
-          <h1>Simple SPA</h1>
-          <ul className="header">
-            <li><NavLink exact to="/">Home</NavLink></li>
-            <li><NavLink to="/stuff">Stuff</NavLink></li>
-            <li><NavLink to="/contact">Contact</NavLink></li>
-          </ul>
+          <Navbar color="dark" dark expand="md">
+            <NavLink className="navbar-brand" to="/">Michael-F-Bryan</NavLink>
+            <NavbarToggler onClick={this.toggle} />
+            <Collapse isOpen={this.state.isOpen} navbar>
+              <Nav className="ml-auto" navbar>
+                <NavItem>
+                  <NavLink className="nav-link" to="/resume">Resume</NavLink>
+                </NavItem>
+                <NavItem className={hasUser ? "" : "d-none"}>
+                  <NavLink className="nav-link" to="/timesheets">Timesheets</NavLink>
+                </NavItem>
+                <NavItem className={hasUser ? "d-none" : ""}>
+                  <NavLink className="nav-link" to="/login">Login</NavLink>
+                </NavItem>
+                <NavItem className={hasUser ? "" : "d-none"}>
+                  <NavLink className="nav-link" to="/logout">Log Out ({username})</NavLink>
+                </NavItem>
+              </Nav>
+            </Collapse>
+          </Navbar>
           <div className="content">
             <Route exact path="/" component={Home}/>
-            <Route path="/stuff" component={Stuff}/>
-            <Route path="/contact" component={Contact}/> 
+            <Route path="/resume" component={Resume}/>
+            <Route path="/timesheets" component={Timesheets}/> 
+            <Route path="/login" component={Login}/> 
+            <Route path="/logout" component={Logout}/> 
           </div>
         </div>
       </BrowserRouter>
