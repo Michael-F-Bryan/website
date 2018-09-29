@@ -5,20 +5,20 @@ import {
   BrowserRouter
 } from "react-router-dom";
 import {
-    Navbar,
-    NavbarToggler,
-    Nav,
-    NavItem,
-    Collapse,
+  Navbar,
+  NavbarToggler,
+  Nav,
+  NavItem,
+  Collapse,
 } from "reactstrap";
 import Home from "./Home";
 import Timesheets from "./Timesheets";
 import Login from "./Login";
 import Logout from "./Logout";
 import Resume from "./Resume";
-import "./index.css";
+import "../index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
- 
+
 export default class Main extends Component {
   constructor(props) {
     super(props);
@@ -36,8 +36,8 @@ export default class Main extends Component {
   }
 
   render() {
-      const { username } = this.state;
-      const hasUser = username && username !== "";
+    const { username } = this.state;
+    const hasUser = username && username !== "";
 
     return (
       <BrowserRouter>
