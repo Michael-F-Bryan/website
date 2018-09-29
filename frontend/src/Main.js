@@ -41,7 +41,7 @@ export default class Main extends Component {
 
     return (
       <BrowserRouter>
-        <div>
+        <div className="container-fluid">
           <Navbar color="dark" dark expand="md">
             <NavLink className="navbar-brand" to="/">Michael-F-Bryan</NavLink>
             <NavbarToggler onClick={this.toggle} />
