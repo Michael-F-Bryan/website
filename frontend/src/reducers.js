@@ -42,13 +42,28 @@ export function startLogin(api_root, username, password) {
   return function(dispatch) {
     dispatch({ type: LOGIN_START, username });
 
-    return fetch(api_root + "/login", { username, password })
+    return fetch(api_root + "/login", { 
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username, password 
+      })
+    })
       .then(
         response => response.json(),
         error => dispatch({ type: LOGIN_FAILED, error }),
       )
       .then(
-        json => dispatch({ type: LOGIN_COMPLETE, token: json.token }), 
+        json => {
+          if (json.error) {
+            dispatch({ type: LOGIN_FAILED, status: json.error });
+          } else {
+            dispatch({ type: LOGIN_COMPLETE, token: json.token });
+          }
+        }, 
         error => dispatch({ type: LOGIN_FAILED, error }),
       );
   }
