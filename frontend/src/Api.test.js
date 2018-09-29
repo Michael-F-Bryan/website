@@ -27,6 +27,7 @@ describe("API interface", () => {
     });
 
     it("Blows up on network errors", async () => {
+        expect.assertions(3);
         const api = new Api();
         fetch.mockReject(new Error("fake error message"));
 
@@ -41,6 +42,7 @@ describe("API interface", () => {
     });
 
     it("Blows up on failed login", async () => {
+        expect.assertions(3);
         const api = new Api();
         fetch.mockResponseOnce(JSON.stringify({ error: "Invalid username or password" }));
 
@@ -52,5 +54,42 @@ describe("API interface", () => {
 
         expect(api.token).toBeFalsy();
         expect(fetch.mock.calls.length).toEqual(1);
+    });
+
+    it("Can fetch whitelisted summary", async () => {
+        const api = new Api();
+        fetch.mockResponseOnce(JSON.stringify({ error: "Invalid username or password" }));
+
+    });
+
+    it("Will blow up when fetching summary with invalid token", async () => {
+        expect.assertions(1);
+        const api = new Api();
+        fetch.mockResponseOnce(JSON.stringify({ error: "Invalid token" }));
+
+        try {
+            const summary = await api.summary();
+        } catch (e) {
+            expect(e.message).toMatch("Invalid token");
+        }
+    });
+
+    it("Can fetch whitelisted summary", async () => {
+        const api = new Api();
+        fetch.mockResponseOnce(JSON.stringify({
+            "times": 5,
+            "total-hours": 40.0,
+            "average-day": 8.0,
+            "non-existent-key": "trolololol"
+        }));
+
+        const got = await api.summary();
+
+        const shouldBe = {
+            "times": 5,
+            "total-hours": 40.0,
+            "average-day": 8.0
+        };
+        expect(got).toEqual(shouldBe);
     });
 });
