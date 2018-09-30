@@ -14,6 +14,8 @@ type UserData interface {
 	CreateUser(username, password string) (User, error)
 	/// Log a user in, retrieving a unique login token
 	LoginUser(username, password string) (Token, error)
+	GetUsers() ([]string, error)
+	DeleteUser(username string) error
 	/// Log a user out, invalidating their login token
 	Logout(tok Token) error
 	/// Is the holder of this token allowed to access the website?
@@ -122,4 +124,28 @@ func (db *Database) GetUser(username string) (User, error) {
 	var user User
 	err := db.inner.C("users").Find(bson.M{"name": username}).One(&user)
 	return user, err
+}
+
+func (db *Database) DeleteUser(username string) error {
+	return db.inner.C("users").Remove(bson.M{"name": username})
+}
+
+func (db *Database) GetUsers() ([]string, error) {
+	iter := db.inner.C("users").Find(nil).Iter()
+
+	var users []string
+	var user User
+
+	for iter.Next(&user) && !iter.Timeout() {
+		users = append(users, user.Name)
+	}
+
+	if iter.Timeout() {
+		return nil, errors.New("Timed out")
+	}
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

@@ -9,22 +9,29 @@ import (
 
 	"log"
 
+	"github.com/Michael-F-Bryan/website"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/tomasen/realip"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func main() {
 	var entry string
 	var static string
 	var port string
+	var db string
 
 	flag.StringVar(&entry, "entry", "./frontend/build/index.html", "the entrypoint to serve.")
 	flag.StringVar(&static, "static", "./frontend/build", "the directory to serve static files from.")
+	flag.StringVar(&db, "db", "localhost", "The database URL to use when connecting to MongoDB")
 	flag.StringVar(&port, "port", "8000", "the `port` to listen on.")
 	flag.Parse()
 
-	s := NewServer()
+	s, err := NewServer(db)
+	if err != nil {
+		log.Fatalf("Unable to create the server, %v", err)
+	}
 
 	r := mux.NewRouter()
 
@@ -51,13 +58,16 @@ func main() {
 }
 
 type Server struct {
-	auth *Auth
+	db *website.Database
 }
 
-func NewServer() *Server {
-	return &Server{
-		auth: NewAuth(),
+func NewServer(url string) (*Server, error) {
+	db, err := website.NewDatabase(url)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Server{db}, nil
 }
 
 func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +96,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := s.auth.LoginUser(request.Username, request.Password)
+	token, err := s.db.LoginUser(request.Username, request.Password)
 	if err != nil {
 		clientIP := realip.FromRequest(r)
 		log.Printf("%s tried to log in with an invalid password (ip: %s)", request.Username, clientIP)
@@ -97,9 +107,9 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Logged %s in with the token, %d", request.Username, token)
 
 	response := struct {
-		success bool  `json:"success"`
-		token   Token `json:"token"`
-	}{true, token}
+		success bool          `json:"success"`
+		token   bson.ObjectId `json:"token"`
+	}{true, token.Id}
 
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
