@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"time"
 
@@ -45,6 +47,10 @@ func main() {
 			Value: 8000,
 			Usage: "The port to listen on",
 		},
+		cli.StringFlag{
+			Name:  "dev",
+			Usage: "Proxy all requests to static assets to the provided NPM server",
+		},
 	}
 
 	app.Action = start
@@ -55,40 +61,62 @@ func main() {
 }
 
 func start(ctx *cli.Context) error {
-	dbUrl := ctx.String("db")
-	static := ctx.String("static")
-	entry := ctx.String("entry")
-	port := ctx.Int("port")
+	args := ParseArgs(ctx)
 
-	conn, err := website.NewDatabase(dbUrl)
+	conn, err := website.NewDatabase(args.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Unable to create the server, %v", err)
 	}
 
-	srv := CreateServer(conn, static, entry, port)
+	srv := CreateServer(conn, args)
 
 	log.Printf("Serving on %s", srv.Addr)
 	return srv.ListenAndServe()
 }
 
-func CreateServer(conn *website.Database, static, entry string, port int) *http.Server {
+func CreateServer(conn *website.Database, args Args) *http.Server {
 	r := mux.NewRouter()
 
 	// It's important that this is before your catch-all route ("/")
 	api := r.PathPrefix("/api/").Subrouter()
 	api.HandleFunc("/login", website.LoginHandler(conn)).Methods("POST")
 
-	// Serve static assets directly.
-	r.PathPrefix("/static").Handler(http.FileServer(http.Dir(static)))
+	if proxyURL, err := url.Parse(args.StaticProxy); err == nil {
+		log.Printf("Proxying static assets to %s", proxyURL)
+		r.PathPrefix("/").Handler(httputil.NewSingleHostReverseProxy(proxyURL))
+	} else {
+		// Serve static assets directly.
+		r.PathPrefix("/static").Handler(http.FileServer(http.Dir(args.Static)))
 
-	// Catch-all: Serve our JavaScript application's entry-point (index.html).
-	r.PathPrefix("/").HandlerFunc(IndexHandler(entry))
+		// Catch-all: Serve our JavaScript application's entry-point (index.html).
+		r.PathPrefix("/").HandlerFunc(IndexHandler(args.Entry))
+	}
 
 	return &http.Server{
 		Handler:      handlers.LoggingHandler(os.Stdout, r),
-		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
+		Addr:         fmt.Sprintf("127.0.0.1:%d", args.Port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
+	}
+}
+
+type Args struct {
+	Static      string
+	Entry       string
+	Port        int
+	Host        string
+	DatabaseURL string
+	StaticProxy string
+}
+
+func ParseArgs(ctx *cli.Context) Args {
+	return Args{
+		Static:      ctx.String("static"),
+		Entry:       ctx.String("entry"),
+		Port:        ctx.Int("port"),
+		Host:        ctx.String("host"),
+		DatabaseURL: ctx.String("db"),
+		StaticProxy: ctx.String("dev"),
 	}
 }
 
