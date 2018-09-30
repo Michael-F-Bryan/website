@@ -50,13 +50,13 @@ type User struct {
 	PasswordHash []byte        `bson:"password"`
 }
 
-func NewUser(name, password string) (*User, error) {
+func NewUser(name, password string) (User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return User{}, err
 	}
 
-	return &User{Id: bson.NewObjectId(), Name: name, PasswordHash: hash}, nil
+	return User{Id: bson.NewObjectId(), Name: name, PasswordHash: hash}, nil
 }
 
 func (u *User) PasswordIsValid(password string) bool {

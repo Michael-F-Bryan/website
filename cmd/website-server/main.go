@@ -65,12 +65,18 @@ func start(ctx *cli.Context) error {
 		log.Fatalf("Unable to create the server, %v", err)
 	}
 
-	s := website.NewServer(conn, conn)
+	srv := CreateServer(conn, static, entry, port)
+
+	log.Printf("Serving on %s", srv.Addr)
+	return srv.ListenAndServe()
+}
+
+func CreateServer(conn *website.Database, static, entry string, port int) *http.Server {
 	r := mux.NewRouter()
 
 	// It's important that this is before your catch-all route ("/")
 	api := r.PathPrefix("/api/").Subrouter()
-	api.HandleFunc("/login", s.LoginHandler).Methods("POST")
+	api.HandleFunc("/login", website.LoginHandler(conn)).Methods("POST")
 
 	// Serve static assets directly.
 	r.PathPrefix("/static").Handler(http.FileServer(http.Dir(static)))
@@ -78,15 +84,12 @@ func start(ctx *cli.Context) error {
 	// Catch-all: Serve our JavaScript application's entry-point (index.html).
 	r.PathPrefix("/").HandlerFunc(IndexHandler(entry))
 
-	srv := &http.Server{
+	return &http.Server{
 		Handler:      handlers.LoggingHandler(os.Stdout, r),
 		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
-	log.Printf("Serving on %s", srv.Addr)
-	return srv.ListenAndServe()
 }
 
 func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
