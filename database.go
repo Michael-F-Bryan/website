@@ -2,11 +2,10 @@ package website
 
 import (
 	"errors"
-	"log"
+	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/globalsign/mgo"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -21,11 +20,19 @@ type UserData interface {
 	TokenIsValid(tok Token) bool
 }
 
-type Token uuid.UUID
+type Token struct {
+	Id       bson.ObjectId `bson:"_id,omitempty"`
+	User     bson.ObjectId `bson:"user_id"`
+	Created  time.Time     `bson:"created"`
+	LastSeen time.Time     `bson:"last_seen"`
+	Deleted  bool          `bson:"deleted"`
+}
 
 const DEFAULT_DATBASE string = "website"
 
-var NilToken Token = Token(uuid.Nil)
+var TOKEN_TIMEOUT time.Duration = 7 * 24 * time.Hour
+
+var NilToken Token = Token{}
 
 type Database struct {
 	inner *mgo.Database
@@ -61,7 +68,7 @@ func (db *Database) CreateUser(username, password string) (User, error) {
 		return User{}, err
 	}
 
-	user := User{Id: bson.NewObjectId(), Name: username, passwordHash: hash}
+	user := User{Id: bson.NewObjectId(), Name: username, PasswordHash: hash}
 
 	if err = db.inner.C("users").Insert(&user); err != nil {
 		return User{}, err
@@ -76,39 +83,43 @@ func (db *Database) LoginUser(username, password string) (Token, error) {
 		return NilToken, err
 	}
 
-	log.Println(user)
-
 	if !user.PasswordIsValid(password) {
 		return NilToken, errors.New("Incorrect Password")
 	}
 
-	tok, err := uuid.NewV4()
+	now := time.Now()
+	tok := Token{
+		Id:       bson.NewObjectId(),
+		User:     user.Id,
+		Created:  now,
+		LastSeen: now,
+	}
+
+	err = db.inner.C("tokens").Insert(&tok)
 	if err != nil {
 		return NilToken, err
 	}
 
-	err = db.InsertToken(Token(tok), &user)
-	if err != nil {
-		return NilToken, err
-	}
-
-	return Token(tok), nil
+	return tok, nil
 }
 
 func (db *Database) Logout(tok Token) error {
-	panic("Not Implemented")
+	change := bson.M{"deleted": true, "last_seen": time.Now()}
+	return db.inner.C("tokens").UpdateId(tok.Id, bson.M{"$set": change})
 }
 
 func (db *Database) TokenIsValid(tok Token) bool {
-	panic("Not Implemented")
+	var got Token
+	err := db.inner.C("tokens").FindId(tok.Id).One(&got)
+	if err != nil {
+		return false
+	}
+
+	return !got.Deleted && time.Now().Sub(got.LastSeen) < TOKEN_TIMEOUT
 }
 
 func (db *Database) GetUser(username string) (User, error) {
 	var user User
 	err := db.inner.C("users").Find(bson.M{"name": username}).One(&user)
 	return user, err
-}
-
-func (db *Database) InsertToken(tok Token, user *User) error {
-	panic("Not Implemented")
 }

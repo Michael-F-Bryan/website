@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/globalsign/mgo"
 	uuid "github.com/satori/go.uuid"
-	mgo "gopkg.in/mgo.v2"
 )
 
 func temporaryDatabase(t *testing.T) (*Database, func(), error) {
@@ -35,13 +35,13 @@ func TestDatabaseImplementsUserData(t *testing.T) {
 }
 
 func TestTypicalUserSession(t *testing.T) {
-	db, closer, err := temporaryDatabase(t)
+	db, _, err := temporaryDatabase(t)
 	if err != nil {
 		t.Log(err)
 		t.Skip("Can't connect to the database")
 		return
 	}
-	defer closer()
+	//defer closer()
 
 	user, err := db.CreateUser("admin", "password1")
 	if err != nil {
@@ -56,12 +56,20 @@ func TestTypicalUserSession(t *testing.T) {
 		t.Errorf("Couldn't login, %v", err)
 	}
 
-	if token != NilToken {
+	if token == NilToken {
 		t.Error("Got the nil token")
+	}
+
+	if !db.TokenIsValid(token) {
+		t.Error("The token isn't valid")
 	}
 
 	err = db.Logout(token)
 	if err != nil {
 		t.Errorf("Couldn't logout, %v", err)
+	}
+
+	if db.TokenIsValid(token) {
+		t.Error("The token should be invalid")
 	}
 }

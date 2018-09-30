@@ -8,7 +8,7 @@ import (
 type User struct {
 	Id           bson.ObjectId `bson:"_id,omitempty"`
 	Name         string        `bson:"name"`
-	passwordHash []byte        `bson:"hash"`
+	PasswordHash []byte        `bson:"password"`
 }
 
 func NewUser(name, password string) (*User, error) {
@@ -17,9 +17,9 @@ func NewUser(name, password string) (*User, error) {
 		return nil, err
 	}
 
-	return &User{Id: bson.NewObjectId(), Name: name, passwordHash: hash}, nil
+	return &User{Id: bson.NewObjectId(), Name: name, PasswordHash: hash}, nil
 }
 
 func (u *User) PasswordIsValid(password string) bool {
-	return bcrypt.CompareHashAndPassword(u.passwordHash, []byte(password)) == nil
+	return bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(password)) == nil
 }
