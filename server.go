@@ -4,10 +4,33 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
+	"github.com/gorilla/sessions"
 	"github.com/tomasen/realip"
 	"gopkg.in/mgo.v2/bson"
 )
+
+func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "session")
+		rawTok, _ := session.Values["token"].(string)
+
+		if bson.IsObjectIdHex(rawTok) {
+			if tok := bson.ObjectIdHex(rawTok); users.TokenIsValid(tok) {
+				inner(w, r)
+				return
+			}
+		}
+
+		if strings.Contains("application/json", r.Header.Get("Accept")) {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"success":false,"error":"Login required"}`))
+		} else {
+			http.Redirect(w, r, "/forbidden", http.StatusFound)
+		}
+	}
+}
 
 func LoginHandler(users UserData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

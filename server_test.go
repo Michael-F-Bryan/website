@@ -3,16 +3,18 @@ package website
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/gorilla/sessions"
 	"gopkg.in/mgo.v2/bson"
 )
 
 func TestLogIntoTheServer(t *testing.T) {
-	users := newMockData()
+	users, _ := newMockData()
 	handler := LoginHandler(users)
 	jason := `{"username":"admin","password":"password1"}`
 
@@ -44,14 +46,46 @@ func TestLogIntoTheServer(t *testing.T) {
 	}
 }
 
-func newMockData() *MockData {
+func TestAuthRequired(t *testing.T) {
+	store := sessions.NewCookieStore([]byte("super secret key"))
+	users, _ := newMockData()
+	handler := AuthRequired(store, users, func(w http.ResponseWriter, r *http.Request) {
+		panic("should be blocked")
+	})
+
+	req, err := http.NewRequest("GET", "/", nil)
+	req.Header.Set("Accept", "application/json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	resp := w.Result()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if status := w.Code; status != http.StatusForbidden {
+		t.Errorf("Expected 401 Forbidden, got %s", http.StatusText(resp.StatusCode))
+	}
+
+	if !strings.Contains(string(body), "error") {
+		t.Errorf("The response should mention an error, got \"%v\"", string(body))
+	}
+}
+
+func newMockData() (*MockData, Token) {
 	d := &MockData{
 		users: make(map[string]User),
 	}
 
 	_, _ = d.CreateUser("admin", "password1")
+	tok, _ := d.LoginUser("admin", "password1")
 
-	return d
+	return d, tok
 }
 
 type MockData struct {
@@ -90,15 +124,19 @@ func (m *MockData) DeleteUser(username string) error {
 	panic("Not Implemented")
 }
 
-func (m *MockData) Logout(tok Token) error {
+func (m *MockData) Logout(tok bson.ObjectId) error {
 	panic("Not Implemented")
 }
 
-func (m *MockData) TokenIsValid(tok Token) bool {
+func (m *MockData) TokenIsValid(tok bson.ObjectId) bool {
 	panic("Not Implemented")
 }
 
 type MockTimes struct{}
+
+func newMockTimes() *MockTimes {
+	return &MockTimes{}
+}
 
 func (m *MockTimes) GetEntryById(id bson.ObjectId) (Entry, error) {
 	panic("Not Implemented")

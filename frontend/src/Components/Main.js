@@ -16,6 +16,7 @@ import Timesheets from "./Timesheets";
 import Login from "./Login";
 import Logout from "./Logout";
 import Resume from "./Resume";
+import Forbidden from "./Forbidden";
 import "../index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -68,6 +69,7 @@ export default class Main extends Component {
             <Route path="/timesheets" component={Timesheets}/> 
             <Route path="/login" component={Login}/> 
             <Route path="/logout" component={Logout}/> 
+            <Route path="/forbidden" component={Forbidden}/> 
           </div>
         </div>
       </BrowserRouter>
