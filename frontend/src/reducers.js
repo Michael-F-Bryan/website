@@ -6,9 +6,10 @@ export const LOGIN_COMPLETE = "LOGIN_COMPLETE";
 export const CLEAR_LOGIN_ERROR = "CLEAR_LOGIN_ERROR";
 export const LOGOUT = "LOGOUT";
 
+console.log(process.env.REACT_APP_DEV);
+
 const InitialLoginState = {
   login_state: "idle",
-  token: null,
   username: null,
   api_root: "/api"
 };
@@ -25,10 +26,10 @@ function login(state = InitialLoginState, action) {
       return Object.assign({}, state, { login_state: "logging_in", username: action.username, error: null });
 
     case LOGIN_COMPLETE:
-      return Object.assign({}, state, { login_state:"idle", token: action.token, error: null });
+      return Object.assign({}, state, { login_state:"idle", error: null });
 
     case LOGIN_FAILED:
-      return Object.assign({}, state, { login_state: "error", error: action.error, token: null, username: null });
+      return Object.assign({}, state, { login_state: "error", error: action.error, username: null });
 
     case CLEAR_LOGIN_ERROR:
       return Object.assign({}, state, { login_state: "idle", error: null });
@@ -61,15 +62,11 @@ export function startLogin(api_root, username, password) {
           if (json.error) {
             dispatch({ type: LOGIN_FAILED, status: json.error });
           } else {
-            dispatch({ type: LOGIN_COMPLETE, token: json.token });
+            dispatch({ type: LOGIN_COMPLETE });
           }
         }, 
         error => dispatch({ type: LOGIN_FAILED, error }),
       );
   }
-}
-
-export function logout(token) {
-  return { type: LOGOUT, token };
 }
 

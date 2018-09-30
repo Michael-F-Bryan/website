@@ -19,6 +19,7 @@ import Resume from "./Resume";
 import Forbidden from "./Forbidden";
 import "../index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import store from "../store";
 
 export default class Main extends Component {
   constructor(props) {
@@ -37,7 +38,7 @@ export default class Main extends Component {
   }
 
   render() {
-    const { username } = this.state;
+    const { username } = store.getState();
     const hasUser = username && username !== "";
 
     return (
