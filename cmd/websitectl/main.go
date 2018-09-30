@@ -13,7 +13,12 @@ func main() {
 	var db *website.Database
 
 	app := cli.NewApp()
+	app.Usage = "A helper CLI tool for manually administering the website's database"
 	app.EnableBashCompletion = true
+	app.Version = website.VERSION
+	app.Authors = []cli.Author{
+		{Name: "Michael-F-Bryan", Email: "michaelfbryan@gmail.com"},
+	}
 
 	app.Before = func(ctx *cli.Context) error {
 		url := ctx.String("db")

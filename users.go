@@ -1,9 +1,48 @@
 package website
 
 import (
+	"encoding/hex"
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"
 )
+
+type UserData interface {
+	/// Create a new user.
+	CreateUser(username, password string) (User, error)
+	/// Log a user in, retrieving a unique login token
+	LoginUser(username, password string) (Token, error)
+	GetUsers() ([]string, error)
+	DeleteUser(username string) error
+	/// Log a user out, invalidating their login token
+	Logout(tok Token) error
+	/// Is the holder of this token allowed to access the website?
+	TokenIsValid(tok Token) bool
+}
+
+type Token struct {
+	Id       bson.ObjectId `bson:"_id,omitempty"`
+	User     bson.ObjectId `bson:"user_id"`
+	Created  time.Time     `bson:"created"`
+	LastSeen time.Time     `bson:"last_seen"`
+	Deleted  bool          `bson:"deleted"`
+}
+
+func (t Token) String() string {
+	repr := hex.EncodeToString([]byte(t.Id))
+	if t.Deleted {
+		repr += " (deleted)"
+	}
+
+	return repr
+}
+
+const DEFAULT_DATBASE string = "website"
+
+var TOKEN_TIMEOUT time.Duration = 7 * 24 * time.Hour
+
+var NilToken Token = Token{}
 
 type User struct {
 	Id           bson.ObjectId `bson:"_id,omitempty"`

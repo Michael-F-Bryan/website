@@ -1,8 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -12,27 +11,61 @@ import (
 	"github.com/Michael-F-Bryan/website"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/tomasen/realip"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/urfave/cli"
 )
 
 func main() {
-	var entry string
-	var static string
-	var port string
-	var db string
+	app := cli.NewApp()
+	app.Usage = "The server for my crappy website"
+	app.EnableBashCompletion = true
+	app.Version = website.VERSION
+	app.Authors = []cli.Author{
+		{Name: "Michael-F-Bryan", Email: "michaelfbryan@gmail.com"},
+	}
 
-	flag.StringVar(&entry, "entry", "./frontend/build/index.html", "the entrypoint to serve.")
-	flag.StringVar(&static, "static", "./frontend/build", "the directory to serve static files from.")
-	flag.StringVar(&db, "db", "localhost", "The database URL to use when connecting to MongoDB")
-	flag.StringVar(&port, "port", "8000", "the `port` to listen on.")
-	flag.Parse()
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "db",
+			Usage:  "The database URL to use when connecting to MongoDB",
+			Value:  "localhost:27017",
+			EnvVar: "DATABASE_URL",
+		},
+		cli.StringFlag{
+			Name:  "entry, e",
+			Value: "./frontend/build/index.html",
+			Usage: "The entrypoint to serve",
+		},
+		cli.StringFlag{
+			Name:  "static",
+			Value: "./frontend/build",
+			Usage: "The directory to serve static files from",
+		},
+		cli.IntFlag{
+			Name:  "port",
+			Value: 8000,
+			Usage: "The port to listen on",
+		},
+	}
 
-	s, err := NewServer(db)
+	app.Action = start
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func start(ctx *cli.Context) error {
+	dbUrl := ctx.String("db")
+	static := ctx.String("static")
+	entry := ctx.String("entry")
+	port := ctx.Int("port")
+
+	conn, err := website.NewDatabase(dbUrl)
 	if err != nil {
 		log.Fatalf("Unable to create the server, %v", err)
 	}
 
+	s := website.NewServer(conn, conn)
 	r := mux.NewRouter()
 
 	// It's important that this is before your catch-all route ("/")
@@ -47,72 +80,20 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      handlers.LoggingHandler(os.Stdout, r),
-		Addr:         "127.0.0.1:" + port,
+		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	log.Printf("Serving on %s", srv.Addr)
-
-	log.Fatal(srv.ListenAndServe())
-}
-
-type Server struct {
-	db *website.Database
-}
-
-func NewServer(url string) (*Server, error) {
-	db, err := website.NewDatabase(url)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Server{db}, nil
+	return srv.ListenAndServe()
 }
 
 func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Serving %s (%s)", r.URL, entrypoint)
 		http.ServeFile(w, r, entrypoint)
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	request := struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}{}
-
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, `{"success":false,"error":"invalid JSON"}`, http.StatusBadRequest)
-		return
-	}
-
-	if request.Username == "" || request.Password == "" {
-		http.Error(w,
-			`{"success":false,"error":"please enter the username and password"}`,
-			http.StatusUnauthorized)
-		return
-	}
-
-	token, err := s.db.LoginUser(request.Username, request.Password)
-	if err != nil {
-		clientIP := realip.FromRequest(r)
-		log.Printf("%s tried to log in with an invalid password (ip: %s)", request.Username, clientIP)
-		http.Error(w, `{"success":false,"error":"invalid username or password"}`, http.StatusUnauthorized)
-		return
-	}
-
-	log.Printf("Logged %s in with the token, %d", request.Username, token)
-
-	response := struct {
-		success bool          `json:"success"`
-		token   bson.ObjectId `json:"token"`
-	}{true, token.Id}
-
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		log.Printf("Failed to write %v, %s", response, err)
-	}
 }

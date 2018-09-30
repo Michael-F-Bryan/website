@@ -9,32 +9,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type UserData interface {
-	/// Create a new user.
-	CreateUser(username, password string) (User, error)
-	/// Log a user in, retrieving a unique login token
-	LoginUser(username, password string) (Token, error)
-	GetUsers() ([]string, error)
-	DeleteUser(username string) error
-	/// Log a user out, invalidating their login token
-	Logout(tok Token) error
-	/// Is the holder of this token allowed to access the website?
-	TokenIsValid(tok Token) bool
-}
-
-type Token struct {
-	Id       bson.ObjectId `bson:"_id,omitempty"`
-	User     bson.ObjectId `bson:"user_id"`
-	Created  time.Time     `bson:"created"`
-	LastSeen time.Time     `bson:"last_seen"`
-	Deleted  bool          `bson:"deleted"`
-}
-
-const DEFAULT_DATBASE string = "website"
-
-var TOKEN_TIMEOUT time.Duration = 7 * 24 * time.Hour
-
-var NilToken Token = Token{}
+const VERSION string = "0.1.0"
 
 type Database struct {
 	inner *mgo.Database
@@ -47,6 +22,10 @@ func NewDatabaseFromMongo(db *mgo.Database) *Database {
 func NewDatabase(url string) (*Database, error) {
 	session, err := mgo.Dial(url)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := session.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -148,4 +127,17 @@ func (db *Database) GetUsers() ([]string, error) {
 	}
 
 	return users, nil
+}
+
+func (db *Database) GetEntryById(id bson.ObjectId) (Entry, error) {
+	panic("Not Implemented")
+}
+func (db *Database) UpdateOrInsertTimesheet(entry Entry) error {
+	panic("Not Implemented")
+}
+func (db *Database) DeleteTimesheet(entry Entry) error {
+	panic("Not Implemented")
+}
+func (db *Database) NumTimesheets() (int, error) {
+	panic("Not Implemented")
 }
