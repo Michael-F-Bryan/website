@@ -9,15 +9,15 @@ import (
 )
 
 type UserData interface {
-	/// Create a new user.
+	// Create a new user.
 	CreateUser(username, password string) (User, error)
-	/// Log a user in, retrieving a unique login token
+	// Log a user in, retrieving a unique login token
 	LoginUser(username, password string) (Token, error)
 	GetUsers() ([]string, error)
 	DeleteUser(username string) error
-	/// Log a user out, invalidating their login token
+	// Log a user out, invalidating their login token
 	Logout(tokenId bson.ObjectId) error
-	/// Is the holder of this token allowed to access the website?
+	// Is the holder of this token allowed to access the website?
 	TokenIsValid(tok bson.ObjectId) bool
 }
 

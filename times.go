@@ -14,7 +14,7 @@ type Timesheets interface {
 	NumTimesheets() (int, error)
 }
 
-/// A single timesheet entry.
+// A single timesheet entry.
 type Entry struct {
 	ID        bson.ObjectId `bson:"_id,omitempty"`
 	Start     time.Time     `bson:"start"`

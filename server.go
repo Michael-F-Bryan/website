@@ -1,3 +1,4 @@
+// A crappy website made entirely for my personal use.
 package website
 
 import (
