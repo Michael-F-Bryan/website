@@ -6,6 +6,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"log"
@@ -92,15 +93,18 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 	logout := website.AuthRequired(store, conn, website.LogoutHandler(store))
 	api.HandleFunc("/logout", logout).Methods("POST")
 
-	if proxyURL, err := url.Parse(args.StaticProxy); err == nil {
+	proxyURL, err := url.Parse(args.StaticProxy)
+
+	if args.StaticProxy != "" && err == nil {
 		log.Printf("Proxying static assets to %s", proxyURL)
 		r.PathPrefix("/").Handler(httputil.NewSingleHostReverseProxy(proxyURL))
 	} else {
 		// Serve static assets directly.
-		r.PathPrefix("/static").Handler(http.FileServer(http.Dir(args.Static)))
+		staticServer := http.FileServer(http.Dir(args.Static))
+		r.PathPrefix("/static").Handler(staticServer)
 
 		// Catch-all: Serve our JavaScript application's entry-point (index.html).
-		r.PathPrefix("/").HandlerFunc(IndexHandler(args.Entry))
+		r.PathPrefix("/").HandlerFunc(FallbackHandler(args.Entry, args.Static, staticServer))
 	}
 
 	return &http.Server{
@@ -131,11 +135,16 @@ func ParseArgs(ctx *cli.Context) Args {
 	}
 }
 
-func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Serving %s (%s)", r.URL, entrypoint)
-		http.ServeFile(w, r, entrypoint)
-	}
+func FallbackHandler(entrypoint string, staticDir string, staticServer http.Handler) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filename := filepath.Join(staticDir, r.URL.Path)
 
-	return http.HandlerFunc(fn)
+		if _, err := os.Stat(filename); err == nil {
+			// the file exists, try to serve it from our static assets
+			staticServer.ServeHTTP(w, r)
+		} else {
+			// serve up our endpoint directly from disk
+			http.ServeFile(w, r, entrypoint)
+		}
+	}
 }
