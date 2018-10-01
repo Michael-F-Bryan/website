@@ -1,5 +1,8 @@
 # michaelfbryan.com
 
+[![Build Status](https://travis-ci.org/Michael-F-Bryan/website.svg?branch=master)](https://travis-ci.org/Michael-F-Bryan/website)
+[![GoDoc](https://godoc.org/github.com/Michael-F-Bryan/website?status.svg)](https://godoc.org/github.com/Michael-F-Bryan/website)
+
 A crappy little website for making my life easier. Written using React (pretty
 frontend), Golang (backend API), and backed by MongoDB.
 
