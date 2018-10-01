@@ -42,6 +42,11 @@ func main() {
 			Value: "./frontend/build",
 			Usage: "The directory to serve static files from",
 		},
+		cli.StringFlag{
+			Name:  "host",
+			Value: "localhost",
+			Usage: "The interface to serve on",
+		},
 		cli.IntFlag{
 			Name:  "port",
 			Value: 8000,
@@ -94,7 +99,7 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 
 	return &http.Server{
 		Handler:      handlers.LoggingHandler(os.Stdout, r),
-		Addr:         fmt.Sprintf("127.0.0.1:%d", args.Port),
+		Addr:         fmt.Sprintf("%s:%d", args.Host, args.Port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
