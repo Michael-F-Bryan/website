@@ -1,69 +1,23 @@
 import React, { Component } from "react";
+import { connect } from 'react-redux'
 import {
   Route,
-  NavLink,
-  BrowserRouter
+  BrowserRouter,
 } from "react-router-dom";
-import {
-  Navbar,
-  NavbarToggler,
-  Nav,
-  NavItem,
-  Collapse,
-} from "reactstrap";
 import Home from "./Home";
+import Header from "./Header";
 import Timesheets from "./Timesheets";
 import Login from "./Login";
 import Logout from "./Logout";
 import Resume from "./Resume";
 import Forbidden from "./Forbidden";
-import "../index.css";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import store from "../store";
 
-export default class Main extends Component {
-  constructor(props) {
-    super(props);
-
-    this.toggle = this.toggle.bind(this);
-    this.state = {
-      isOpen: false,
-    };
-  }
-
-  toggle() {
-    this.setState({
-      isOpen: !this.state.isOpen
-    });
-  }
-
+class Main extends Component {
   render() {
-    const { username } = store.getState();
-    const hasUser = username && username !== "";
-
     return (
       <BrowserRouter>
         <div>
-          <Navbar color="dark" dark expand="md">
-            <NavLink className="navbar-brand" to="/">Michael-F-Bryan</NavLink>
-            <NavbarToggler onClick={this.toggle} />
-            <Collapse isOpen={this.state.isOpen} navbar>
-              <Nav className="ml-auto" navbar>
-                <NavItem>
-                  <NavLink className="nav-link" to="/resume">Resume</NavLink>
-                </NavItem>
-                <NavItem className={hasUser ? "" : "d-none"}>
-                  <NavLink className="nav-link" to="/timesheets">Timesheets</NavLink>
-                </NavItem>
-                <NavItem className={hasUser ? "d-none" : ""}>
-                  <NavLink className="nav-link" to="/login">Login</NavLink>
-                </NavItem>
-                <NavItem className={hasUser ? "" : "d-none"}>
-                  <NavLink className="nav-link" to="/logout">Log Out ({username})</NavLink>
-                </NavItem>
-              </Nav>
-            </Collapse>
-          </Navbar>
+          <Header username={this.props.username} />
           <div className="content">
             <Route exact path="/" component={Home}/>
             <Route path="/resume" component={Resume}/>
@@ -77,3 +31,15 @@ export default class Main extends Component {
     );
   }
 }
+
+function mapStateToProps(state) { 
+  return {
+    username: state.login.username
+  };
+}
+
+function mapDispatchToProps(dispatch) { 
+  return {};
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

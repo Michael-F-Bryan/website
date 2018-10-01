@@ -1,8 +1,9 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 import { startLogin } from "../reducers";
-import store from "../store";
 
-export default class Login extends Component {
+class Login extends Component {
   constructor(props) {
     super(props);
 
@@ -12,12 +13,6 @@ export default class Login extends Component {
     };
 
     this.handleChange = this.handleChange.bind(this);
-    this.submit = this.submit.bind(this);
-  }
-
-  submit(e) {
-    e.preventDefault();
-    store.dispatch(startLogin("/api", this.state.username, this.state.password));
   }
 
   handleChange(e) {
@@ -28,11 +23,13 @@ export default class Login extends Component {
 
   render() {
     const { username, password } = this.state;
+    const { history, onLogin } = this.props;
+    const login = e => onLogin({e, username, password, history });
 
     return (
       <div id="login-container">
         <h1>Log In</h1>
-        <form method="post" onSubmit={this.submit}>
+        <form onSubmit={login}>
           <div className="login-row">
             <label htmlFor="username">Username</label>
             <input type="text" name="username" id="username" placeholder="Your Username" 
@@ -50,3 +47,20 @@ export default class Login extends Component {
   }
 }
 
+function mapStateToProps(state) { 
+  return { };
+}
+
+function mapDispatchToProps(dispatch) { 
+  return {
+    onLogin: ({ e, username, password, history }) => {
+      console.log("Started logging in");
+      e.preventDefault();
+
+      var loginPromise = startLogin("/api", username, password);
+      dispatch(d => loginPromise(d).then(() => history.replace("/")));
+    },
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Login));

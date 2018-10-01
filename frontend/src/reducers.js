@@ -6,8 +6,6 @@ export const LOGIN_COMPLETE = "LOGIN_COMPLETE";
 export const CLEAR_LOGIN_ERROR = "CLEAR_LOGIN_ERROR";
 export const LOGOUT = "LOGOUT";
 
-console.log(process.env.REACT_APP_DEV);
-
 const InitialLoginState = {
   login_state: "idle",
   username: null,
@@ -33,6 +31,9 @@ function login(state = InitialLoginState, action) {
 
     case CLEAR_LOGIN_ERROR:
       return Object.assign({}, state, { login_state: "idle", error: null });
+
+    case LOGOUT:
+      return Object.assign({}, state, { login_state: "idle", username: null });
 
     default: 
       return state;
@@ -67,6 +68,32 @@ export function startLogin(api_root, username, password) {
         }, 
         error => dispatch({ type: LOGIN_FAILED, error }),
       );
+  }
+}
+
+export function startLogout(api_root) {
+  return function(dispatch) {
+    return fetch(api_root + "/logout", { 
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+    })
+      .then(
+        response => response.json(),
+        error => console.log("Unable to logout:", error),
+      )
+    .then(
+      json => {
+        if (json.error) {
+          console.log("Unable to logout:", json.error);
+        } else {
+          dispatch({ type: LOGOUT });
+        }
+      },
+        error => console.log("Unable to logout:", error),
+    );
   }
 }
 

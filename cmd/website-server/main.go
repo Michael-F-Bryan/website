@@ -13,6 +13,7 @@ import (
 	"github.com/Michael-F-Bryan/website"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/urfave/cli"
 )
 
@@ -53,8 +54,9 @@ func main() {
 			Usage: "The port to listen on",
 		},
 		cli.StringFlag{
-			Name:  "dev",
-			Usage: "Proxy all requests to static assets to the provided NPM server",
+			Name:   "dev",
+			Usage:  "Proxy all requests to static assets to the provided NPM server",
+			EnvVar: "DEV_NPM_SERVER",
 		},
 	}
 
@@ -81,10 +83,14 @@ func start(ctx *cli.Context) error {
 
 func CreateServer(conn *website.Database, args Args) *http.Server {
 	r := mux.NewRouter()
+	store := sessions.NewCookieStore([]byte("super secret key"))
 
 	// It's important that this is before your catch-all route ("/")
 	api := r.PathPrefix("/api/").Subrouter()
-	api.HandleFunc("/login", website.LoginHandler(conn)).Methods("POST")
+	api.HandleFunc("/login", website.LoginHandler(store, conn)).Methods("POST")
+
+	logout := website.AuthRequired(store, conn, website.LogoutHandler(store))
+	api.HandleFunc("/logout", logout).Methods("POST")
 
 	if proxyURL, err := url.Parse(args.StaticProxy); err == nil {
 		log.Printf("Proxying static assets to %s", proxyURL)

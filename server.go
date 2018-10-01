@@ -1,4 +1,4 @@
-// A crappy website made entirely for my personal use.
+// Package website is just a crappy website made entirely for my personal use.
 package website
 
 import (
@@ -24,7 +24,7 @@ func AuthRequired(store *sessions.CookieStore, users UserData, inner http.Handle
 			}
 		}
 
-		if strings.Contains("application/json", r.Header.Get("Accept")) {
+		if acceptsJson(r.Header) {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte(`{"success":false,"error":"Login required"}`))
 		} else {
@@ -33,7 +33,13 @@ func AuthRequired(store *sessions.CookieStore, users UserData, inner http.Handle
 	}
 }
 
-func LoginHandler(users UserData) http.HandlerFunc {
+func acceptsJson(header http.Header) bool {
+	accept := strings.ToLower(header.Get("Accept"))
+	log.Printf(`Checking if "%s" accepts JSON`, accept)
+	return strings.Contains(accept, "application/json")
+}
+
+func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		request := struct {
 			Username string `json:"username"`
@@ -62,6 +68,12 @@ func LoginHandler(users UserData) http.HandlerFunc {
 
 		log.Printf("Logged %s in with the token, %s", request.Username, token)
 
+		session, _ := store.Get(r, "session")
+		session.Values["token"] = token.Id.Hex()
+		if err = session.Save(r, w); err != nil {
+			log.Printf("Unable to save the session, %s", err)
+		}
+
 		response := struct {
 			Success bool          `json:"success"`
 			Token   bson.ObjectId `json:"token"`
@@ -70,6 +82,19 @@ func LoginHandler(users UserData) http.HandlerFunc {
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			log.Printf("Failed to write %v, %s", response, err)
+		}
+	}
+}
+
+func LogoutHandler(store *sessions.CookieStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "session")
+		session.Values["token"] = ""
+		if err := session.Save(r, w); err != nil {
+			log.Printf("Unable to save the session, %s", err)
+			w.Write([]byte(`{"success":false,"error":"Couldn't remove the cookie"}`))
+		} else {
+			w.Write([]byte(`{"success":true}`))
 		}
 	}
 }
