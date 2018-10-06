@@ -5,6 +5,7 @@ export const LOGIN_FAILED = "LOGIN_FAILED";
 export const LOGIN_COMPLETE = "LOGIN_COMPLETE";
 export const CLEAR_LOGIN_ERROR = "CLEAR_LOGIN_ERROR";
 export const LOGOUT = "LOGOUT";
+export const PING = "PING";
 
 const InitialLoginState = {
   login_state: "idle",
@@ -34,6 +35,10 @@ function login(state = InitialLoginState, action) {
 
     case LOGOUT:
       return Object.assign({}, state, { login_state: "idle", username: null });
+
+    case PING:
+      const { username } = action.data;
+      return Object.assign({}, state, { username });
 
     default: 
       return state;
@@ -97,3 +102,15 @@ export function startLogout(api_root) {
   }
 }
 
+export function ping(api_root) {
+  return function(dispatch) {
+    return fetch(api_root + "/ping")
+      .then(
+        response => response.json(),
+        error => console.log("Unable to send a ping")
+        )
+      .then(json => {
+        dispatch({ type: PING, data: json });
+      });
+  }
+}
