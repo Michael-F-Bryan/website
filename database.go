@@ -99,8 +99,16 @@ func (db *Database) GetToken(tok bson.ObjectId) *Token {
 	return nil
 }
 
-func (db *Database) UpdateLastSeen(tok bson.ObjectId, now time.Time) error {
-	panic("Not Implemented")
+func (db *Database) UpdateLastSeen(id bson.ObjectId, now time.Time) error {
+	token := db.GetToken(id)
+
+	if token == nil {
+		return errors.New("Invalid token")
+	}
+
+	token.LastSeen = now
+	_, err := db.inner.C("tokens").Upsert(bson.M{"_id": id}, token)
+	return err
 }
 
 func (db *Database) GetUser(username string) (User, error) {
