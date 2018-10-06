@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Button, ButtonGroup, Table } from "reactstrap";
+import { FaPlus, FaDownload } from "react-icons/fa";
 import Summary from "./Summary";
 
 const periods = [
@@ -60,9 +61,17 @@ class Timesheets extends Component {
 
     return (
       <div className="container">
-        <h2 className="my-3">Timesheets</h2>
+        <h2 className="my-3">
+          Timesheets
+        </h2>
 
-        <ButtonGroup className="my-2">{buttons}</ButtonGroup>
+        <div className="row my-2 justify-content-between">
+          <ButtonGroup>{buttons}</ButtonGroup>
+          <ButtonGroup>
+            <Button outline onClick={() => console.log("Plus!")}><FaPlus/></Button>
+            <Button outline onClick={() => console.log("Download!")}><FaDownload /></Button>
+          </ButtonGroup>
+        </div>
         <Summary times={times} />
 
         <Table hover>
@@ -73,7 +82,8 @@ class Timesheets extends Component {
               <th>Start</th>
               <th>End</th>
               <th>HoursWorked</th>
-              <th></th>
+              <th>
+              </th>
             </tr>
           </thead>
           <tbody>
