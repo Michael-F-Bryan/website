@@ -23,6 +23,9 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
 
 	api.HandleFunc("/ping", PingHandler(store, users)).Methods("GET")
+	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, `{"success":false,"error":"No such endpoint"}`, http.StatusNotFound)
+	})
 }
 
 func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {

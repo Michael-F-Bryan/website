@@ -1,4 +1,4 @@
-FROM golang:1.8
+FROM alpine
 
 WORKDIR /go/src/app
 COPY ./website-server .

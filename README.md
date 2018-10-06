@@ -51,16 +51,22 @@ $ website-server --dev http://localhost:3000/
 You can then visit the website at http://localhost:8000/ and it'll automatically
 update any time frontend code is changed.
 
-Otherwise, for release builds:
-
-```console
-cd frontend && npm run build && cd..
-website-server --host 0.0.0.0 --port 80
-```
-
 When the database is first created it will be empty, meaning it's not possible
 to log in. You can create new users via `websitectl`.
 
 ```console
 $ websitectl --db localhost:27017 create-user --username admin --password Password1
 ```
+
+## Deployment
+
+Deployment is done by building a Docker container and running everything using
+`docker-compose`.
+
+```console
+git clone https://github.com/Michael-F-Bryan/website ~/$GOPATH/src/github/Michael-F-Bryan/website
+make docker
+docker-compose build
+docker-compose up -d
+```
+

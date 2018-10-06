@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 import { Button, ButtonGroup, Table } from "reactstrap";
 import { FaPlus, FaDownload } from "react-icons/fa";
 import Summary from "./Summary";
@@ -24,6 +25,7 @@ class Timesheets extends Component {
   }
 
   render() {
+    console.log(this.props);
     const buttons = periods.map(period => {
       const { days, label } = period;
       const isActive = this.state.days === days;
@@ -68,7 +70,7 @@ class Timesheets extends Component {
         <div className="row my-2 justify-content-between">
           <ButtonGroup>{buttons}</ButtonGroup>
           <ButtonGroup>
-            <Button outline onClick={() => console.log("Plus!")}><FaPlus/></Button>
+            <Button outline onClick={() => this.props.history.push("/timesheets/new")}><FaPlus/></Button>
             <Button outline onClick={() => console.log("Download!")}><FaDownload /></Button>
           </ButtonGroup>
         </div>
@@ -104,4 +106,4 @@ function mapDispatchToProps(dispatch) {
   return {};
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Timesheets);
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Timesheets));
