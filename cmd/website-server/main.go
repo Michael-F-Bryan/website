@@ -70,6 +70,7 @@ func main() {
 
 func start(ctx *cli.Context) error {
 	args := ParseArgs(ctx)
+	log.Printf("Parsed arguments, %#v", args)
 
 	conn, err := website.NewDatabase(args.DatabaseURL)
 	if err != nil {

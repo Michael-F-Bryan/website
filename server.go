@@ -19,7 +19,7 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 	api := router.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/login", LoginHandler(store, users)).Methods("POST").Headers("Content-Type", "application/json")
 
-	logout := AuthRequired(store, users, LogoutHandler(store))
+	logout := AuthRequired(store, users, LogoutHandler(store, users))
 	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
 
 	api.HandleFunc("/ping", PingHandler(store, users)).Methods("GET")
@@ -119,16 +119,30 @@ func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc 
 	}
 }
 
-func LogoutHandler(store *sessions.CookieStore) http.HandlerFunc {
+func LogoutHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session")
+		rawTok, _ := session.Values["token"].(string)
+
+		if bson.IsObjectIdHex(rawTok) {
+			if tok := bson.ObjectIdHex(rawTok); users.GetToken(tok) != nil {
+				if err := users.Logout(tok); err != nil {
+					log.Printf("Unable to log out %s, %s", tok, err)
+					http.Error(w, `{"success":false,"error":"Unable to log out"}`, http.StatusInternalServerError)
+					return
+				}
+			}
+		}
+
 		session.Values["token"] = ""
+
 		if err := session.Save(r, w); err != nil {
 			log.Printf("Unable to save the session, %s", err)
 			w.Write([]byte(`{"success":false,"error":"Couldn't remove the cookie"}`))
-		} else {
-			w.Write([]byte(`{"success":true}`))
+			return
 		}
+
+		w.Write([]byte(`{"success":true}`))
 	}
 }
 

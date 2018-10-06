@@ -82,7 +82,7 @@ func TestAuthRequired(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	server, client, _, _, _ := integrationTestSetup()
+	server, client, _, users, _ := integrationTestSetup()
 	defer server.Close()
 
 	body := `{"username":"admin","password":"password1"}`
@@ -92,6 +92,9 @@ func TestLogout(t *testing.T) {
 	}
 	defer res.Body.Close()
 
+	if len(users.tokens) != 1 {
+		t.Errorf("There should only be 1 token, found %d", len(users.tokens))
+	}
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Expected 200 OK but got %s", http.StatusText(res.StatusCode))
 	}
@@ -105,6 +108,12 @@ func TestLogout(t *testing.T) {
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Expected 200 OK but got %d %s", res.StatusCode, http.StatusText(res.StatusCode))
+	}
+
+	for _, token := range users.tokens {
+		if !token.Deleted {
+			t.Errorf("The token should have been deleted, found %v", token)
+		}
 	}
 }
 
@@ -229,19 +238,26 @@ func (m *MockData) DeleteUser(username string) error {
 	panic("Not Implemented")
 }
 
-func (m *MockData) Logout(tok bson.ObjectId) error {
-	panic("Not Implemented")
+func (m *MockData) Logout(id bson.ObjectId) error {
+	token, exists := m.tokens[id]
+	if !exists {
+		return errors.New("Invalid token")
+	}
+
+	token.Deleted = true
+	m.tokens[id] = token
+	return nil
 }
 
-func (m *MockData) GetToken(tok bson.ObjectId) *Token {
-	token := m.tokens[tok]
+func (m *MockData) GetToken(id bson.ObjectId) *Token {
+	token := m.tokens[id]
 	return &token
 }
 
-func (m *MockData) UpdateLastSeen(tok bson.ObjectId, now time.Time) error {
-	if token, exists := m.tokens[tok]; exists {
+func (m *MockData) UpdateLastSeen(id bson.ObjectId, now time.Time) error {
+	if token, exists := m.tokens[id]; exists {
 		token.LastSeen = now
-		m.tokens[tok] = token
+		m.tokens[id] = token
 		return nil
 	}
 
