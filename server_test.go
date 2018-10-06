@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -89,6 +90,7 @@ func TestLogout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Expected 200 OK but got %s", http.StatusText(res.StatusCode))
@@ -99,9 +101,47 @@ func TestLogout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Expected 200 OK but got %d %s", res.StatusCode, http.StatusText(res.StatusCode))
+	}
+}
+
+func TestPingUpdatesLastSeen(t *testing.T) {
+	server, client, _, users, _ := integrationTestSetup()
+	defer server.Close()
+
+	// we need to be logged in
+	body := `{"username":"admin","password":"password1"}`
+	res, err := client.Post(server.URL+"/api/login", "application/json", strings.NewReader(body))
+	if err != nil || res.StatusCode != http.StatusOK {
+		t.Fatal("Couldn't login")
+	}
+
+	res, err = client.Get(server.URL + "/api/ping")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Expected 200 OK but got %d %s", res.StatusCode, http.StatusText(res.StatusCode))
+	}
+
+	ping := Ping{}
+	if err := json.NewDecoder(res.Body).Decode(&ping); err != nil {
+		t.Error(err)
+	}
+
+	token := users.tokens[ping.Token]
+	if !token.LastSeen.After(ping.PreviousLastSeen) {
+		t.Errorf("The LastSeen field should have been updated. %s is not after %s",
+			token.LastSeen, ping.PreviousLastSeen)
+	}
+
+	if ping.Username != "admin" {
+		t.Errorf(`Username should be admin, found "%s"`, ping.Username)
 	}
 }
 
@@ -123,19 +163,20 @@ func integrationTestSetup() (*httptest.Server, *http.Client, *sessions.CookieSto
 	return server, client, store, users, times
 }
 
+type MockData struct {
+	users  map[string]User
+	tokens map[bson.ObjectId]Token
+}
+
 func newMockData() *MockData {
 	d := &MockData{
-		users: make(map[string]User),
+		users:  make(map[string]User),
+		tokens: make(map[bson.ObjectId]Token),
 	}
 
 	_, _ = d.CreateUser("admin", "password1")
 
 	return d
-}
-
-type MockData struct {
-	users  map[string]User
-	tokens []Token
 }
 
 func (m *MockData) CreateUser(username, password string) (User, error) {
@@ -158,14 +199,30 @@ func (m *MockData) LoginUser(username, password string) (Token, error) {
 		return Token{}, errors.New("Invalid password")
 	}
 
-	tok := Token{Id: bson.NewObjectId(), User: user.Id}
-	m.tokens = append(m.tokens, tok)
+	now := time.Now()
+	tok := Token{
+		Id:       bson.NewObjectId(),
+		User:     user.Id,
+		Created:  now,
+		LastSeen: now,
+	}
+	m.tokens[tok.Id] = tok
 
 	return tok, nil
 }
 
 func (m *MockData) GetUsers() ([]string, error) {
 	panic("Not Implemented")
+}
+
+func (m *MockData) GetUserById(id bson.ObjectId) (*User, error) {
+	for _, user := range m.users {
+		if user.Id == id {
+			return &user, nil
+		}
+	}
+
+	return nil, errors.New("Not Found")
 }
 
 func (m *MockData) DeleteUser(username string) error {
@@ -177,13 +234,18 @@ func (m *MockData) Logout(tok bson.ObjectId) error {
 }
 
 func (m *MockData) GetToken(tok bson.ObjectId) *Token {
-	for _, token := range m.tokens {
-		if token.Id == tok {
-			return &token
-		}
+	token := m.tokens[tok]
+	return &token
+}
+
+func (m *MockData) UpdateLastSeen(tok bson.ObjectId, now time.Time) error {
+	if token, exists := m.tokens[tok]; exists {
+		token.LastSeen = now
+		m.tokens[tok] = token
+		return nil
 	}
 
-	return nil
+	return errors.New("Token is not valid")
 }
 
 type MockTimes struct{}

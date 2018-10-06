@@ -14,12 +14,14 @@ type UserData interface {
 	// Log a user in, retrieving a unique login token
 	LoginUser(username, password string) (Token, error)
 	GetUsers() ([]string, error)
+	GetUserById(id bson.ObjectId) (*User, error)
 	DeleteUser(username string) error
 	// Log a user out, invalidating their login token
 	Logout(tokenId bson.ObjectId) error
 	// Get the corresponding Token from its ID, returning nil if it's no longer
 	// valid.
 	GetToken(tok bson.ObjectId) *Token
+	UpdateLastSeen(tok bson.ObjectId, now time.Time) error
 }
 
 type Token struct {

@@ -3,9 +3,11 @@ package website
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -20,7 +22,7 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 	logout := AuthRequired(store, users, LogoutHandler(store))
 	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
 
-	api.HandleFunc("/ping", Ping(store, users)).Methods("GET")
+	api.HandleFunc("/ping", PingHandler(store, users)).Methods("GET")
 }
 
 func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {
@@ -91,6 +93,12 @@ func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc 
 			return
 		}
 
+		if err := users.UpdateLastSeen(token.Id, time.Now()); err != nil {
+			log.Printf("Unable to update last seen for %s, %s (token: %s)", request.Username, err, token.Id)
+			http.Error(w, `{"success":false,"error":"Internal server error"}`, http.StatusInternalServerError)
+			return
+		}
+
 		log.Printf("Logged %s in with the token, %s", request.Username, token)
 
 		session, _ := store.Get(r, "session")
@@ -124,13 +132,24 @@ func LogoutHandler(store *sessions.CookieStore) http.HandlerFunc {
 	}
 }
 
-func Ping(store *sessions.CookieStore, users UserData) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ping := struct {
-			LoggedIn bool   `json:"logged-in"`
-			Username string `json:"username"`
-		}{}
+type Ping struct {
+	LoggedIn         bool          `json:"logged-in"`
+	Token            bson.ObjectId `json:"token"`
+	Username         string        `json:"username"`
+	PreviousLastSeen time.Time     `json:"previously-seen"`
+}
 
+func (p Ping) String() string {
+	return fmt.Sprintf(`Ping { LoggedIn: %v, Token: %s, Username: "%s", PreviousLastSeen: %s }`,
+		p.LoggedIn,
+		p.Token.Hex(),
+		p.Username,
+		p.PreviousLastSeen)
+}
+
+func PingHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ping := Ping{}
 		session, _ := store.Get(r, "session")
 		rawTok, _ := session.Values["token"].(string)
 
@@ -138,7 +157,30 @@ func Ping(store *sessions.CookieStore, users UserData) http.HandlerFunc {
 			id := bson.ObjectIdHex(rawTok)
 			if tok := users.GetToken(id); tok != nil {
 				ping.LoggedIn = true
+				ping.PreviousLastSeen = tok.LastSeen
+				ping.Token = id
+
+				if err := users.UpdateLastSeen(id, time.Now()); err != nil {
+					log.Printf("Unable to update last seen for %s, %s", tok.Id, err)
+					http.Error(w, `{"success":false,"error":"Internal server error"}`, http.StatusInternalServerError)
+					return
+				}
+
+				user, err := users.GetUserById(tok.User)
+				if err != nil {
+					log.Printf("Unable to fetch the user corresponding to %#v, %s", tok, err)
+					http.Error(w, `{"success":false,"error":"Internal server error"}`, http.StatusInternalServerError)
+					return
+				} else {
+					ping.Username = user.Name
+				}
 			}
+		}
+
+		log.Printf("Sending back a %s", ping)
+
+		if err := json.NewEncoder(w).Encode(&ping); err != nil {
+			log.Printf("Unable to encode the ping response, %s", err)
 		}
 	}
 }

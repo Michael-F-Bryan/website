@@ -99,6 +99,10 @@ func (db *Database) GetToken(tok bson.ObjectId) *Token {
 	return nil
 }
 
+func (db *Database) UpdateLastSeen(tok bson.ObjectId, now time.Time) error {
+	panic("Not Implemented")
+}
+
 func (db *Database) GetUser(username string) (User, error) {
 	var user User
 	err := db.inner.C("users").Find(bson.M{"name": username}).One(&user)
@@ -127,6 +131,12 @@ func (db *Database) GetUsers() ([]string, error) {
 	}
 
 	return users, nil
+}
+
+func (db *Database) GetUserById(id bson.ObjectId) (*User, error) {
+	var user User
+	err := db.inner.C("users").Find(bson.M{"_id": id}).One(&user)
+	return &user, err
 }
 
 func (db *Database) GetEntryById(id bson.ObjectId) (Entry, error) {
