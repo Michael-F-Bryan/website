@@ -176,14 +176,14 @@ func (m *MockData) Logout(tok bson.ObjectId) error {
 	panic("Not Implemented")
 }
 
-func (m *MockData) TokenIsValid(tok bson.ObjectId) bool {
+func (m *MockData) GetToken(tok bson.ObjectId) *Token {
 	for _, token := range m.tokens {
 		if token.Id == tok {
-			return true
+			return &token
 		}
 	}
 
-	return false
+	return nil
 }
 
 type MockTimes struct{}

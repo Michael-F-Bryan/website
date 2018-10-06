@@ -17,8 +17,9 @@ type UserData interface {
 	DeleteUser(username string) error
 	// Log a user out, invalidating their login token
 	Logout(tokenId bson.ObjectId) error
-	// Is the holder of this token allowed to access the website?
-	TokenIsValid(tok bson.ObjectId) bool
+	// Get the corresponding Token from its ID, returning nil if it's no longer
+	// valid.
+	GetToken(tok bson.ObjectId) *Token
 }
 
 type Token struct {

@@ -63,7 +63,7 @@ func TestTypicalUserSession(t *testing.T) {
 		t.Error("Got the nil token")
 	}
 
-	if !db.TokenIsValid(token.Id) {
+	if tok := db.GetToken(token.Id); tok == nil {
 		t.Error("The token isn't valid")
 	}
 
@@ -72,7 +72,7 @@ func TestTypicalUserSession(t *testing.T) {
 		t.Errorf("Couldn't logout, %v", err)
 	}
 
-	if db.TokenIsValid(token.Id) {
+	if tok := db.GetToken(token.Id); tok != nil {
 		t.Error("The token should be invalid")
 	}
 }

@@ -89,14 +89,14 @@ func (db *Database) Logout(tok bson.ObjectId) error {
 	return db.inner.C("tokens").UpdateId(tok, bson.M{"$set": change})
 }
 
-func (db *Database) TokenIsValid(tok bson.ObjectId) bool {
+func (db *Database) GetToken(tok bson.ObjectId) *Token {
 	var got Token
 	err := db.inner.C("tokens").FindId(tok).One(&got)
-	if err != nil {
-		return false
+	if err == nil && !got.Deleted && time.Now().Sub(got.LastSeen) < TOKEN_TIMEOUT {
+		return &got
 	}
 
-	return !got.Deleted && time.Now().Sub(got.LastSeen) < TOKEN_TIMEOUT
+	return nil
 }
 
 func (db *Database) GetUser(username string) (User, error) {

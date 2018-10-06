@@ -19,7 +19,8 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 
 	logout := AuthRequired(store, users, LogoutHandler(store))
 	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
-	api.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { panic("Unknown URL " + r.URL.String()) })
+
+	api.HandleFunc("/ping", Ping(store, users)).Methods("GET")
 }
 
 func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {
@@ -28,7 +29,7 @@ func AuthRequired(store *sessions.CookieStore, users UserData, inner http.Handle
 		rawTok, _ := session.Values["token"].(string)
 
 		if bson.IsObjectIdHex(rawTok) {
-			if tok := bson.ObjectIdHex(rawTok); users.TokenIsValid(tok) {
+			if tok := bson.ObjectIdHex(rawTok); users.GetToken(tok) != nil {
 				inner(w, r)
 				return
 			}
@@ -119,6 +120,25 @@ func LogoutHandler(store *sessions.CookieStore) http.HandlerFunc {
 			w.Write([]byte(`{"success":false,"error":"Couldn't remove the cookie"}`))
 		} else {
 			w.Write([]byte(`{"success":true}`))
+		}
+	}
+}
+
+func Ping(store *sessions.CookieStore, users UserData) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ping := struct {
+			LoggedIn bool   `json:"logged-in"`
+			Username string `json:"username"`
+		}{}
+
+		session, _ := store.Get(r, "session")
+		rawTok, _ := session.Values["token"].(string)
+
+		if bson.IsObjectIdHex(rawTok) {
+			id := bson.ObjectIdHex(rawTok)
+			if tok := users.GetToken(id); tok != nil {
+				ping.LoggedIn = true
+			}
 		}
 	}
 }
