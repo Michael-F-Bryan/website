@@ -22,7 +22,6 @@ class Login extends Component {
   }
 
   render() {
-
     const { login_state, username, error } = this.props.login;
 
     if (login_state === "done" && username && !error) {

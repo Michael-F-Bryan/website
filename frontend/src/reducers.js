@@ -7,6 +7,25 @@ export const CLEAR_LOGIN_ERROR = "CLEAR_LOGIN_ERROR";
 export const LOGOUT = "LOGOUT";
 export const PING = "PING";
 
+const InitialTimesState = [
+  {
+    id: 1, 
+    start: new Date(2018, 9, 6, 8, 5), 
+    end: new Date(2018, 9, 6, 17, 5), 
+    breaks: 1000*60*30, 
+    morning: "Did some stuff",
+    afternoon: "Did some more stuff"
+  },
+  {
+    id: 1, 
+    start: new Date(2018, 8, 6, 8, 44), 
+    end: new Date(2018, 8, 6, 17, 32), 
+    breaks: 1000*60*30, 
+    morning: "Did some stuff",
+    afternoon: "Did some more stuff"
+  }
+];
+
 const InitialLoginState = {
   login_state: "idle",
   username: null,
@@ -14,7 +33,8 @@ const InitialLoginState = {
 };
 
 const website = combineReducers({
-  login
+  login,
+  times
 });
 
 export default website;
@@ -38,9 +58,20 @@ function login(state = InitialLoginState, action) {
 
     case PING:
       const { username } = action.data;
-      return Object.assign({}, state, { username });
+      const newState = Object.assign({}, state, { username });
+      if (username) {
+        newState.login_state = "done";
+      }
+      return newState;
 
     default: 
+      return state;
+  }
+}
+
+function times(state = InitialTimesState, action) {
+  switch(action.type) {
+    default:
       return state;
   }
 }

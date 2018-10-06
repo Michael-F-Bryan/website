@@ -6,6 +6,8 @@ import Main from "./Components/Main";
 import store from "./store";
 
 import "./index.css";
+import "jquery/dist/jquery.js";
+import "bootstrap/dist/js/bootstrap.js";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const rootElement = document.getElementById("root");
