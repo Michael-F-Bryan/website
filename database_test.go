@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -8,8 +9,10 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+const port int = 27017
+
 func temporaryDatabase(t *testing.T) (*Database, func(), error) {
-	session, err := mgo.DialWithTimeout("localhost:32769", 1*time.Second)
+	session, err := mgo.DialWithTimeout(fmt.Sprintf("localhost:%d", port), 1*time.Second)
 	if err != nil {
 		return nil, nil, err
 	}

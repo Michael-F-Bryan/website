@@ -7,10 +7,20 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/tomasen/realip"
 	"gopkg.in/mgo.v2/bson"
 )
+
+func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users UserData, times Timesheets) {
+	api := router.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/login", LoginHandler(store, users)).Methods("POST").Headers("Content-Type", "application/json")
+
+	logout := AuthRequired(store, users, LogoutHandler(store))
+	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
+	api.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { panic("Unknown URL " + r.URL.String()) })
+}
 
 func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +34,8 @@ func AuthRequired(store *sessions.CookieStore, users UserData, inner http.Handle
 			}
 		}
 
+		log.Printf("%s tried to access %s without authentication", realip.FromRequest(r), r.URL)
+
 		if acceptsJson(r.Header) {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte(`{"success":false,"error":"Login required"}`))
@@ -34,9 +46,21 @@ func AuthRequired(store *sessions.CookieStore, users UserData, inner http.Handle
 }
 
 func acceptsJson(header http.Header) bool {
-	accept := strings.ToLower(header.Get("Accept"))
-	log.Printf(`Checking if "%s" accepts JSON`, accept)
-	return strings.Contains(accept, "application/json")
+	var fields []string
+	if accept := header.Get("Accept"); accept != "" {
+		fields = append(fields, strings.ToLower(accept))
+	}
+	if contentType := header.Get("Contet-Type"); contentType != "" {
+		fields = append(fields, strings.ToLower(contentType))
+	}
+
+	for _, field := range fields {
+		if strings.Contains(field, "application/json") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc {
@@ -53,7 +77,7 @@ func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc 
 
 		if request.Username == "" || request.Password == "" {
 			http.Error(w,
-				`{"success":false,"error":"please enter the username and password"}`,
+				`{"success":false,"error":"please enter a username and password"}`,
 				http.StatusUnauthorized)
 			return
 		}
@@ -61,7 +85,7 @@ func LoginHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc 
 		token, err := users.LoginUser(request.Username, request.Password)
 		if err != nil {
 			clientIP := realip.FromRequest(r)
-			log.Printf("%s tried to log in with an invalid password (ip: %s)", request.Username, clientIP)
+			log.Printf("%s failed to log in, %s (ip: %s)", request.Username, err, clientIP)
 			http.Error(w, `{"success":false,"error":"invalid username or password"}`, http.StatusUnauthorized)
 			return
 		}

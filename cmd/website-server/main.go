@@ -87,25 +87,8 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 	store := sessions.NewCookieStore([]byte("super secret key"))
 
 	// It's important that this is before your catch-all route ("/")
-	api := r.PathPrefix("/api/").Subrouter()
-	api.HandleFunc("/login", website.LoginHandler(store, conn)).Methods("POST")
-
-	logout := website.AuthRequired(store, conn, website.LogoutHandler(store))
-	api.HandleFunc("/logout", logout).Methods("POST")
-
-	proxyURL, err := url.Parse(args.StaticProxy)
-
-	if args.StaticProxy != "" && err == nil {
-		log.Printf("Proxying static assets to %s", proxyURL)
-		r.PathPrefix("/").Handler(httputil.NewSingleHostReverseProxy(proxyURL))
-	} else {
-		// Serve static assets directly.
-		staticServer := http.FileServer(http.Dir(args.Static))
-		r.PathPrefix("/static").Handler(staticServer)
-
-		// Catch-all: Serve our JavaScript application's entry-point (index.html).
-		r.PathPrefix("/").HandlerFunc(FallbackHandler(args.Entry, args.Static, staticServer))
-	}
+	website.RegisterApiRoutes(r, store, conn, conn)
+	registerStaticResources(r, args)
 
 	return &http.Server{
 		Handler:      handlers.LoggingHandler(os.Stdout, r),
@@ -113,6 +96,23 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+}
+
+func registerStaticResources(router *mux.Router, args Args) {
+	proxyURL, err := url.Parse(args.StaticProxy)
+
+	if args.StaticProxy != "" && err == nil {
+		log.Printf("Proxying static assets to %s", proxyURL)
+		router.PathPrefix("/").Handler(httputil.NewSingleHostReverseProxy(proxyURL))
+	} else {
+		// Serve static assets directly.
+		staticServer := http.FileServer(http.Dir(args.Static))
+		router.PathPrefix("/static").Handler(staticServer)
+
+		// Catch-all: Serve our JavaScript application's entry-point (index.html).
+		router.PathPrefix("/").HandlerFunc(FallbackHandler(args.Entry, args.Static, staticServer))
+	}
+
 }
 
 type Args struct {

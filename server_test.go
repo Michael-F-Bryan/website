@@ -5,17 +5,20 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"gopkg.in/mgo.v2/bson"
 )
 
 func TestLogIntoTheServer(t *testing.T) {
-	users, _ := newMockData()
-	handler := LoginHandler(users)
+	store := sessions.NewCookieStore([]byte("super secret key"))
+	users := newMockData()
+	handler := LoginHandler(store, users)
 	jason := `{"username":"admin","password":"password1"}`
 
 	req, err := http.NewRequest("POST", "/api/login", strings.NewReader(jason))
@@ -48,7 +51,7 @@ func TestLogIntoTheServer(t *testing.T) {
 
 func TestAuthRequired(t *testing.T) {
 	store := sessions.NewCookieStore([]byte("super secret key"))
-	users, _ := newMockData()
+	users := newMockData()
 	handler := AuthRequired(store, users, func(w http.ResponseWriter, r *http.Request) {
 		panic("should be blocked")
 	})
@@ -77,15 +80,57 @@ func TestAuthRequired(t *testing.T) {
 	}
 }
 
-func newMockData() (*MockData, Token) {
+func TestLogout(t *testing.T) {
+	server, client, _, _, _ := integrationTestSetup()
+	defer server.Close()
+
+	body := `{"username":"admin","password":"password1"}`
+	res, err := client.Post(server.URL+"/api/login", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Expected 200 OK but got %s", http.StatusText(res.StatusCode))
+	}
+
+	body = ``
+	res, err = client.Post(server.URL+"/api/logout", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Expected 200 OK but got %d %s", res.StatusCode, http.StatusText(res.StatusCode))
+	}
+}
+
+func integrationTestSetup() (*httptest.Server, *http.Client, *sessions.CookieStore, *MockData, *MockTimes) {
+	store := sessions.NewCookieStore([]byte("super secret key"))
+	users := newMockData()
+	times := newMockTimes()
+	router := mux.NewRouter()
+	RegisterApiRoutes(router, store, users, times)
+	server := httptest.NewServer(router)
+
+	client := server.Client()
+	jar, _ := cookiejar.New(nil)
+	client.Jar = jar
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	return server, client, store, users, times
+}
+
+func newMockData() *MockData {
 	d := &MockData{
 		users: make(map[string]User),
 	}
 
 	_, _ = d.CreateUser("admin", "password1")
-	tok, _ := d.LoginUser("admin", "password1")
 
-	return d, tok
+	return d
 }
 
 type MockData struct {
@@ -113,7 +158,10 @@ func (m *MockData) LoginUser(username, password string) (Token, error) {
 		return Token{}, errors.New("Invalid password")
 	}
 
-	return Token{Id: bson.NewObjectId(), User: user.Id}, nil
+	tok := Token{Id: bson.NewObjectId(), User: user.Id}
+	m.tokens = append(m.tokens, tok)
+
+	return tok, nil
 }
 
 func (m *MockData) GetUsers() ([]string, error) {
@@ -129,7 +177,13 @@ func (m *MockData) Logout(tok bson.ObjectId) error {
 }
 
 func (m *MockData) TokenIsValid(tok bson.ObjectId) bool {
-	panic("Not Implemented")
+	for _, token := range m.tokens {
+		if token.Id == tok {
+			return true
+		}
+	}
+
+	return false
 }
 
 type MockTimes struct{}
