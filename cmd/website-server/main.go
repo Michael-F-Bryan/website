@@ -90,8 +90,18 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 	website.RegisterApiRoutes(r, store, conn, conn)
 	registerStaticResources(r, args)
 
+	var handler http.Handler = handlers.LoggingHandler(os.Stdout, r)
+
+	if args.DeveloperMode() {
+		oldHandler := handler
+		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache, no-store")
+			oldHandler.ServeHTTP(w, r)
+		})
+	}
+
 	return &http.Server{
-		Handler:      handlers.LoggingHandler(os.Stdout, r),
+		Handler:      handler,
 		Addr:         fmt.Sprintf("%s:%d", args.Host, args.Port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -99,9 +109,9 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 }
 
 func registerStaticResources(router *mux.Router, args Args) {
-	proxyURL, err := url.Parse(args.StaticProxy)
+	proxyURL, err := url.Parse(args.DevProxy)
 
-	if args.StaticProxy != "" && err == nil {
+	if args.DevProxy != "" && err == nil {
 		log.Printf("Proxying static assets to %s", proxyURL)
 		router.PathPrefix("/").Handler(httputil.NewSingleHostReverseProxy(proxyURL))
 	} else {
@@ -121,7 +131,7 @@ type Args struct {
 	Port        int
 	Host        string
 	DatabaseURL string
-	StaticProxy string
+	DevProxy    string
 }
 
 func ParseArgs(ctx *cli.Context) Args {
@@ -131,8 +141,12 @@ func ParseArgs(ctx *cli.Context) Args {
 		Port:        ctx.Int("port"),
 		Host:        ctx.String("host"),
 		DatabaseURL: ctx.String("db"),
-		StaticProxy: ctx.String("dev"),
+		DevProxy:    ctx.String("dev"),
 	}
+}
+
+func (a Args) DeveloperMode() bool {
+	return a.DevProxy == ""
 }
 
 func FallbackHandler(entrypoint string, staticDir string, staticServer http.Handler) func(w http.ResponseWriter, r *http.Request) {

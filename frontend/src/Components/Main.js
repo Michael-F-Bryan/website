@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import {
   Route,
   BrowserRouter,
+  Redirect,
 } from "react-router-dom";
 import Home from "./Home";
 import Header from "./Header";
@@ -14,6 +15,8 @@ import Forbidden from "./Forbidden";
 
 class Main extends Component {
   render() {
+    const { username } = this.props;
+
     return (
       <BrowserRouter>
         <div>
@@ -21,7 +24,7 @@ class Main extends Component {
           <div className="content">
             <Route exact path="/" component={Home}/>
             <Route path="/resume" component={Resume}/>
-            <Route path="/timesheets" component={Timesheets}/> 
+            <PrivateRoute authed={username} path="/timesheets" component={Timesheets} />
             <Route path="/login" component={Login}/> 
             <Route path="/logout" component={Logout}/> 
             <Route path="/forbidden" component={Forbidden}/> 
@@ -31,6 +34,19 @@ class Main extends Component {
     );
   }
 }
+
+const PrivateRoute = ({ component: Component, authed, ...rest }) => (
+  <Route {...rest} render={props => (
+    authed ? (
+      <Component {...props}/>
+    ) : (
+      <Redirect to={{
+        pathname: '/login',
+        state: { from: props.location }
+      }}/>
+    )
+  )}/>
+);
 
 function mapStateToProps(state) { 
   return {

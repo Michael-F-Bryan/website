@@ -24,7 +24,7 @@ function login(state = InitialLoginState, action) {
       return Object.assign({}, state, { login_state: "logging_in", username: action.username, error: null });
 
     case LOGIN_COMPLETE:
-      return Object.assign({}, state, { login_state:"idle", error: null });
+      return Object.assign({}, state, { login_state: "done", error: null });
 
     case LOGIN_FAILED:
       return Object.assign({}, state, { login_state: "error", error: action.error, username: null });
@@ -61,7 +61,7 @@ export function startLogin(api_root, username, password) {
       .then(
         json => {
           if (json.error) {
-            dispatch({ type: LOGIN_FAILED, status: json.error });
+            dispatch({ type: LOGIN_FAILED, error: json.error });
           } else {
             dispatch({ type: LOGIN_COMPLETE });
           }

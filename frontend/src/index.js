@@ -6,7 +6,7 @@ import Main from "./Components/Main";
 import store from "./store";
 
 import "./index.css";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(
