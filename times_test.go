@@ -3,6 +3,8 @@ package website
 import (
 	"testing"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestGetTimeWorked(t *testing.T) {
@@ -10,7 +12,7 @@ func TestGetTimeWorked(t *testing.T) {
 	workDay := 8 * time.Hour
 	breaks := 30 * time.Minute
 
-	entry := NewEntry(now, now.Add(workDay))
+	entry := NewEntry(bson.NewObjectId(), now, now.Add(workDay))
 	entry.Breaks = breaks
 
 	got, err := entry.TimeWorked()

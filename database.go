@@ -143,19 +143,48 @@ func (db *Database) GetUsers() ([]string, error) {
 
 func (db *Database) GetUserById(id bson.ObjectId) (*User, error) {
 	var user User
-	err := db.inner.C("users").Find(bson.M{"_id": id}).One(&user)
+	err := db.inner.C("users").FindId(id).One(&user)
 	return &user, err
 }
 
 func (db *Database) GetEntryById(id bson.ObjectId) (Entry, error) {
-	panic("Not Implemented")
+	var entry Entry
+	err := db.inner.C("times").FindId(id).One(&entry)
+
+	if err != nil {
+		return Entry{}, err
+	}
+
+	return entry, nil
 }
+
 func (db *Database) UpdateOrInsertTimesheet(entry Entry) error {
-	panic("Not Implemented")
+	_, err := db.inner.C("times").Upsert(bson.M{"_id": entry.ID}, entry)
+	return err
 }
-func (db *Database) DeleteTimesheet(entry Entry) error {
-	panic("Not Implemented")
+
+func (db *Database) DeleteTimesheet(id bson.ObjectId) error {
+	return db.inner.C("times").RemoveId(id)
 }
-func (db *Database) NumTimesheets() (int, error) {
-	panic("Not Implemented")
+
+func (db *Database) GetEntries(userId bson.ObjectId, start, end time.Time) ([]Entry, error) {
+	iter := db.inner.C("times").Find(bson.M{"user": userId}).Iter()
+
+	var entries []Entry
+	var temp Entry
+
+	for iter.Next(&temp) && !iter.Timeout() {
+		if temp.Start.After(start) && temp.End.Before(end) {
+			entries = append(entries, temp)
+		}
+	}
+
+	if iter.Timeout() {
+		return nil, errors.New("Timed out")
+	}
+	if err := iter.Close(); err != nil {
+		return nil, err
+	}
+
+	return entries, nil
 }

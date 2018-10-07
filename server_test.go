@@ -278,10 +278,10 @@ func (m *MockTimes) UpdateOrInsertTimesheet(entry Entry) error {
 	panic("Not Implemented")
 }
 
-func (m *MockTimes) DeleteTimesheet(entry Entry) error {
+func (m *MockTimes) DeleteTimesheet(id bson.ObjectId) error {
 	panic("Not Implemented")
 }
 
-func (m *MockTimes) NumTimesheets() (int, error) {
+func (m *MockTimes) GetEntries(userId bson.ObjectId, start, end time.Time) ([]Entry, error) {
 	panic("Not Implemented")
 }

@@ -10,13 +10,14 @@ import (
 type Timesheets interface {
 	GetEntryById(id bson.ObjectId) (Entry, error)
 	UpdateOrInsertTimesheet(entry Entry) error
-	DeleteTimesheet(entry Entry) error
-	NumTimesheets() (int, error)
+	DeleteTimesheet(id bson.ObjectId) error
+	GetEntries(userId bson.ObjectId, start, end time.Time) ([]Entry, error)
 }
 
 // A single timesheet entry.
 type Entry struct {
 	ID        bson.ObjectId `bson:"_id,omitempty"`
+	User      bson.ObjectId `bson:"user"`
 	Start     time.Time     `bson:"start"`
 	End       time.Time     `bson:"end"`
 	Breaks    time.Duration `bson:"breaks"`
@@ -24,14 +25,16 @@ type Entry struct {
 	Afternoon string        `bson:"afternoon"`
 }
 
-func NewEntry(start, end time.Time) *Entry {
-	return &Entry{
+func NewEntry(user bson.ObjectId, start, end time.Time) Entry {
+	return Entry{
+		ID:    bson.NewObjectId(),
+		User:  user,
 		Start: start,
 		End:   end,
 	}
 }
 
-func (e *Entry) TimeWorked() (time.Duration, error) {
+func (e Entry) TimeWorked() (time.Duration, error) {
 	if e.Start.After(e.End) {
 		return 0, errors.New("You can't start after you end")
 	}
@@ -42,4 +45,8 @@ func (e *Entry) TimeWorked() (time.Duration, error) {
 	}
 
 	return duration - e.Breaks, nil
+}
+
+func (e Entry) Equals(other Entry) bool {
+	return e.ID == other.ID && e.User == other.User
 }
