@@ -19,7 +19,7 @@ export default class Entry {
     }
   }
 
-  hoursWorked() {
+  timeWorked() {
     return moment.duration(this.end.diff(this.start)).subtract(this.breaks);
   }
 

@@ -33,15 +33,10 @@ Summary.propTypes = {
   times: PropTypes.arrayOf(PropTypes.instanceOf(Entry)).isRequired
 };
 
-function hoursWorked(start, end, breaks) {
-    return (end - start - breaks)/1000/60/60;
-}
-
 function calculateStats(times) {
   const totalDays = times.length;
-  const totalHours = times.map(time => hoursWorked(time.start, time.end, time.breaks))
-    .reduce((acc, elem) => acc + elem, 0);
-  const averageDay = totalHours/totalDays;
+  const totalHours = times.reduce((acc, elem) => acc + elem.timeWorked().hours(), 0);
+  const averageDay = totalDays !== 0 ? totalHours/totalDays : 0;
 
   return { totalDays, totalHours, averageDay };
 }

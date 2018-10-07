@@ -5,6 +5,7 @@ import { withRouter } from "react-router-dom";
 import { Button, ButtonGroup, Table } from "reactstrap";
 import { FaPlus, FaDownload } from "react-icons/fa";
 import Summary from "./Summary";
+import { fetchTimesheetEntries } from "../reducers";
 
 const periods = [
   { days: -1, label: "All Time" },
@@ -21,12 +22,35 @@ class Timesheets extends Component {
     this.state = { days: -1 };
   }
 
+  componentDidMount() {
+    this.updateTimesheetEntries();
+  }
+
   setDays(days) {
     this.setState({ days });
+    this.updateTimesheetEntries();
+  }
+
+  lowerBound() {
+    const { days } = this.state;
+
+    if (days < 0) {
+      return new Date(0);
+    } else {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - this.state.days);
+      return cutoff;
+    }
+  }
+
+  updateTimesheetEntries() {
+    const lower = this.lowerBound();
+    const upper = new Date();
+
+    this.props.refreshEntries(lower, upper);
   }
 
   render() {
-    console.log(this.props);
     const buttons = periods.map(period => {
       const { days, label } = period;
       const isActive = this.state.days === days;
@@ -41,12 +65,9 @@ class Timesheets extends Component {
 
     var times = this.props.times;
 
-    if(this.state.days > 0) {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - this.state.days);
-      console.log(cutoff);
-      times = times.filter(time => cutoff < time.start);
-    } 
+    const lower = this.lowerBound();
+    const upper = new Date();
+    times = times.filter(time => lower <= time.start && time.start <= upper);
 
     const rows = times.map((time, i) => {
       return (
@@ -59,7 +80,7 @@ class Timesheets extends Component {
           </td>
           <td>{time.start.format("LT")}</td>
           <td>{time.end.format("LT")}</td>
-          <td>{time.hoursWorked().humanize()}</td>
+          <td>{time.timeWorked().humanize()}</td>
           <td></td>
         </tr>
       );
@@ -107,7 +128,9 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) { 
-  return {};
+  return {
+    refreshEntries: (lower, upper) => dispatch(fetchTimesheetEntries(lower, upper))
+  };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Timesheets));

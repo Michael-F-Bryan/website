@@ -28,6 +28,9 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 	newEntry := AuthRequired(store, users, NewEntryHandler(times))
 	api.HandleFunc("/timesheets/new", newEntry).Methods("POST").Headers("Content-Type", "application/json")
 
+	refreshEntries := AuthRequired(store, users, RefreshEntriesHandler(times))
+	api.HandleFunc("/timesheets", refreshEntries).Methods("POST").Headers("Content-Type", "application/json")
+
 	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"success":false,"error":"No such endpoint"}`, http.StatusNotFound)
 	})
@@ -253,6 +256,44 @@ func NewEntryHandler(times Timesheets) http.HandlerFunc {
 		}{Entry: entry, Success: true}
 		if err := json.NewEncoder(w).Encode(&response); err != nil {
 			log.Printf("Unable to serialize the response, %s", err)
+		}
+	}
+}
+
+func RefreshEntriesHandler(times Timesheets) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId, ok := r.Context().Value("user").(bson.ObjectId)
+		if !ok {
+			log.Print("The user ID wasn't provided as part of the request context")
+			http.Error(w, `{"success":false,"error":"internal server error"}`, http.StatusInternalServerError)
+			return
+		}
+
+		request := struct {
+			Start time.Time `json:"start"`
+			End   time.Time `json:"end"`
+		}{}
+
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			log.Printf("Unable to parse the request from user ID %s, %s", userId.Hex(), err)
+			http.Error(w, fmt.Sprintf(`{"success":false,"error":"unable to parse the request"}`, err), http.StatusBadRequest)
+			return
+		}
+
+		got, err := times.GetEntries(userId, request.Start, request.End)
+		if err != nil {
+			log.Printf("Error retrieving entries from %s to %s, %s", request.Start, request.End, err)
+			http.Error(w, `{"success":false,"error":"internal server error"}`, http.StatusInternalServerError)
+			return
+		}
+
+		response := struct {
+			Success bool    `json:"success"`
+			Entries []Entry `json:"entries"`
+		}{Success: true, Entries: got}
+
+		if err := json.NewEncoder(w).Encode(&response); err != nil {
+			log.Printf("Unable serialize the response, %s", err)
 		}
 	}
 }
