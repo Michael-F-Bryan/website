@@ -102,6 +102,8 @@ func CreateServer(conn *website.Database, args Args) *http.Server {
 		})
 	}
 
+	handler = handlers.CompressHandler(handler)
+
 	return &http.Server{
 		Handler:      handler,
 		Addr:         fmt.Sprintf("%s:%d", args.Host, args.Port),
