@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import moment from "moment";
+import Entry from "./Entry";
 
 export const LOGIN_START = "LOGIN_START";
 export const LOGIN_FAILED = "LOGIN_FAILED";
@@ -9,22 +9,8 @@ export const LOGOUT = "LOGOUT";
 export const PING = "PING";
 
 const InitialTimesState = [
-  {
-    id: 1, 
-    start: new Date(2018, 9, 6, 8, 5), 
-    end: new Date(2018, 9, 6, 17, 5), 
-    breaks: 1000*60*30, 
-    morning: "Did some stuff",
-    afternoon: "Did some more stuff"
-  },
-  {
-    id: 1, 
-    start: new Date(2018, 8, 6, 8, 44), 
-    end: new Date(2018, 8, 6, 17, 32), 
-    breaks: 1000*60*30, 
-    morning: "Did some stuff",
-    afternoon: "Did some more stuff"
-  }
+  new Entry(0, new Date(2018, 9, 6, 8, 5), new Date(2018, 9, 6, 17, 5), 1000*60*30, "Drank Coffee", "Wrote Code"),
+  new Entry(1, new Date(2018, 8, 6, 8, 44), new Date(2018, 8, 6, 17, 32), 1000*60*35, "Did some stuff", "Knocked off early"),
 ];
 
 const InitialLoginState = {
@@ -149,25 +135,15 @@ export function ping(api_root) {
 
 export function saveTimesheetEntry(api_root, entry, success, error) {
   return function(dispatch) {
-    var { id, date, start, end, breaks, morning, afternoon } = entry;
-
-    date = moment(date, moment.HTML5_FMT.DATE);
-    start = moment.duration(start, moment.HTML5_FMT.TIME);
-    start = moment(date).add(start);
-    end = moment.duration(end, moment.HTML5_FMT.TIME);
-    end = moment(date).add(end);
-
-    if (end.isAfter(start)) {
-      error(new Error("You can't end before you've started"));
-      return;
-    }
-    if (breaks < 0) {
-      error(new Error("You can't have negative breaks"));
+    try {
+      entry.validate();
+    } catch (e) {
+      error(e);
       return;
     }
 
+    const { id } = entry;
     const endpoint = id ? api_root + "/timesheets/" + id : api_root + "/timesheets/new";
-    const body = { start, end, breaks, morning, afternoon };
 
     return fetch(endpoint, {
       method: "POST",
@@ -175,7 +151,7 @@ export function saveTimesheetEntry(api_root, entry, success, error) {
         "Accept": "application/json",
         "Content-Type": "application/json"
       },
-      body
+      body: entry
     })
       .then(
         response => response.json(),

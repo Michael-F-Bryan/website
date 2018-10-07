@@ -10,6 +10,7 @@ import Home from "./Home";
 import Header from "./Header";
 import Timesheets from "./Timesheets";
 import EditTimesheet from "./EditTimesheet";
+import ViewTimesheet from "./ViewTimesheet";
 import Login from "./Login";
 import Logout from "./Logout";
 import Resume from "./Resume";
@@ -36,7 +37,8 @@ class Main extends Component {
               <Route exact path="/" component={Home}/>
               <Route path="/resume" component={Resume}/>
               <PrivateRoute authed={username} path="/timesheets/new" component={EditTimesheet} />
-              <PrivateRoute authed={username} path="/timesheets/:id" component={EditTimesheet} />
+              <PrivateRoute authed={username} path="/timesheets/:id/edit" component={EditTimesheet} />
+              <PrivateRoute authed={username} path="/timesheets/:id" component={ViewTimesheet} />
               <PrivateRoute authed={username} path="/timesheets/" component={Timesheets} />
               <Route path="/login" component={Login}/> 
               <Route path="/logout" component={Logout}/> 

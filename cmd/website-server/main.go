@@ -72,6 +72,7 @@ func start(ctx *cli.Context) error {
 	args := ParseArgs(ctx)
 	log.Printf("Parsed arguments, %#v", args)
 
+	log.Printf("Connecting to mongo at %s", args.DatabaseURL)
 	conn, err := website.NewDatabase(args.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Unable to create the server, %v", err)

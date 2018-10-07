@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { NavLink } from "react-router-dom";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
 import { Button, ButtonGroup, Table } from "reactstrap";
@@ -48,14 +49,17 @@ class Timesheets extends Component {
     } 
 
     const rows = times.map((time, i) => {
-      const hoursWorked = (time.end - time.start - time.breaks)/1000/60/60;
       return (
         <tr key={i}>
           <td>{i+1}</td>
-          <td>{time.start.toLocaleDateString()}</td>
-          <td>{time.start.toLocaleTimeString()}</td>
-          <td>{time.end.toLocaleTimeString()}</td>
-          <td>{Math.round(hoursWorked*10)/10}</td>
+          <td>
+            <NavLink to={"/timesheets/" + time.id}>
+              {time.start.format("LL")}
+            </NavLink>
+          </td>
+          <td>{time.start.format("LT")}</td>
+          <td>{time.end.format("LT")}</td>
+          <td>{time.hoursWorked().humanize()}</td>
           <td></td>
         </tr>
       );

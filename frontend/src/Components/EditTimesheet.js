@@ -3,21 +3,34 @@ import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
 import { Button, Col, Form, FormGroup, Label, Input } from "reactstrap";
 import moment from "moment";
+import Entry from "../Entry";
 import { saveTimesheetEntry } from "../reducers";
 
 class EditTimesheet extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      day: moment().format(moment.HTML5_FMT.DATE),
-      start: moment().format(moment.HTML5_FMT.TIME),
-      end: moment().add(8, "hours").format(moment.HTML5_FMT.TIME),
-      breaks: 0,
-      id: this.props.match.id,
-    };
+    // make sure we initialize the state properly, whether we're creating
+    // a new entry or just editing an old one
+    if (props.match.params.id) {
+      const { id } = props.match.params;
+      const entry = props.times.find(entry => entry.id == id);
+      this.state = Object.assign({ day: entry.start }, entry);
+    } else {
+      this.state = {
+        day: moment(),
+        start: moment(),
+        end: moment().add(8, "hours"),
+        breaks: moment.duration(0),
+      };
+    }
 
-    this.state = Object.assign(this.state, props.entry || {});
+    // then convert fields so they'll be accepted by the relevant input
+    // component
+    this.state.day = this.state.day.format(moment.HTML5_FMT.DATE);
+    this.state.start = this.state.start.format(moment.HTML5_FMT.TIME);
+    this.state.end = this.state.end.format(moment.HTML5_FMT.TIME);
+    this.state.breaks = this.state.breaks.asMinutes();
 
     this.handleChange = this.handleChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,8 +40,27 @@ class EditTimesheet extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    this.props.onSubmit(this.state, 
-      outcome => this.setState({ saved: true }),
+    var { id, day, start, end, breaks, morning, afternoon } = this.state;
+
+    day = moment(day, moment.HTML5_FMT.DATE);
+    start = moment.duration(start, moment.HTML5_FMT.TIME);
+    start = moment(day).add(start);
+    end = moment.duration(end, moment.HTML5_FMT.TIME);
+    end = moment(day).add(end);
+
+    const entry = new Entry(id, start, end, breaks * 1000, morning, afternoon)
+    try {
+      entry.validate();
+    } catch (e) {
+      this.setState({ error: e.toString() });
+      return;
+    }
+
+    this.props.onSubmit(entry, 
+      outcome => {
+        const { id } = outcome;
+        this.props.history.push("/timesheets/" + id);
+      },
       error => {
         if (error instanceof Error) {
           // it's some sort of exception
@@ -53,12 +85,6 @@ class EditTimesheet extends Component {
 
   render() {
     const { saved, error, id } = this.state;
-
-    if (saved) {
-      return (
-        <Redirect to="/timesheets" />
-      );
-    }
 
     var errorMessage;
 
@@ -122,7 +148,7 @@ class EditTimesheet extends Component {
 }
 
 function mapStateToProps(state) { 
-  return {};
+  return { times: state.times };
 }
 
 function mapDispatchToProps(dispatch) { 
