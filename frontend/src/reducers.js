@@ -7,9 +7,11 @@ export const LOGIN_COMPLETE = "LOGIN_COMPLETE";
 export const CLEAR_LOGIN_ERROR = "CLEAR_LOGIN_ERROR";
 export const LOGOUT = "LOGOUT";
 export const PING = "PING";
+export const ENTRY_DELETE = "ENTRY_DELETE";
+export const ENTRY_SAVED = "ENTRY_SAVED";
 
 const InitialTimesState = [
-  new Entry(0, new Date(2018, 9, 6, 8, 5), new Date(2018, 9, 6, 17, 5), 1000*60*30, "Drank Coffee", "Wrote Code"),
+  new Entry(0, new Date(2018, 9, 6, 8, 5), new Date(2018, 9, 6, 17, 5), 1000*60*30, "Drank **loads** of coffee", "Wrote Code"),
   new Entry(1, new Date(2018, 8, 6, 8, 44), new Date(2018, 8, 6, 17, 32), 1000*60*35, "Did some stuff", "Knocked off early"),
 ];
 
@@ -58,6 +60,13 @@ function login(state = InitialLoginState, action) {
 
 function times(state = InitialTimesState, action) {
   switch(action.type) {
+    case ENTRY_SAVED:
+      throw new Error("Not Implemented");
+
+    case ENTRY_DELETE:
+      const { id } = action;
+      return state.filter(entry => entry.id !== id);
+
     default:
       return state;
   }
@@ -133,13 +142,12 @@ export function ping(api_root) {
   };
 }
 
-export function saveTimesheetEntry(api_root, entry, success, error) {
+export function saveTimesheetEntry(api_root, entry) {
   return function(dispatch) {
     try {
       entry.validate();
     } catch (e) {
-      error(e);
-      return;
+      return Promise.reject(e);
     }
 
     const { id } = entry;
@@ -153,14 +161,34 @@ export function saveTimesheetEntry(api_root, entry, success, error) {
       },
       body: entry
     })
-      .then(
-        response => response.json(),
-        err => error(err)
-      )
-      .then(
-        json => json.success ? success(json) : error(json),
-        err => error(err)
-      );
+      .then(response => response.json())
+      .then(json => {
+          if (json.success) {
+            dispatch({ type: ENTRY_SAVED, json });
+          } else {
+            throw new Error(json.error);
+          }
+        });
   };
 }
 
+export function deleteTimesheetEntry(api_root, id) {
+  return function(dispatch) {
+    return fetch(api_root + "/timesheets/" + id, {
+      method: "DELETE",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+    })
+      .then(response => response.json())
+      .then(json => {
+          if (json.success) {
+            dispatch({ type: ENTRY_DELETE, id });
+          }  else {
+            throw new Error(json.error);
+          }
+        }
+      );
+  }
+}

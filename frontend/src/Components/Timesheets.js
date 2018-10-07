@@ -87,7 +87,7 @@ class Timesheets extends Component {
               <th>Date</th>
               <th>Start</th>
               <th>End</th>
-              <th>HoursWorked</th>
+              <th>Hours Worked</th>
               <th>
               </th>
             </tr>

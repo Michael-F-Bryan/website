@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { Redirect } from "react-router-dom";
-import { Button, Col, Form, FormGroup, Label, Input } from "reactstrap";
+import { Button, ButtonGroup, Col, Form, FormGroup, Label, Input } from "reactstrap";
+import { withRouter } from "react-router-dom";
 import moment from "moment";
 import Entry from "../Entry";
 import { saveTimesheetEntry } from "../reducers";
@@ -14,7 +14,7 @@ class EditTimesheet extends Component {
     // a new entry or just editing an old one
     if (props.match.params.id) {
       const { id } = props.match.params;
-      const entry = props.times.find(entry => entry.id == id);
+      const entry = props.times.find(entry => entry.id.toString() === id);
       this.state = Object.assign({ day: entry.start }, entry);
     } else {
       this.state = {
@@ -56,7 +56,8 @@ class EditTimesheet extends Component {
       return;
     }
 
-    this.props.onSubmit(entry, 
+    this.props.onSubmit(entry)
+    .then(
       outcome => {
         const { id } = outcome;
         this.props.history.push("/timesheets/" + id);
@@ -84,7 +85,7 @@ class EditTimesheet extends Component {
   }
 
   render() {
-    const { saved, error, id } = this.state;
+    const { error, id } = this.state;
 
     var errorMessage;
 
@@ -101,7 +102,7 @@ class EditTimesheet extends Component {
 
     return (
       <div className="container">
-        <h1>{id ? "Edit Timesheet" : "New Timesheet"}</h1>
+        <h1 className="my-3">{id ? "Edit Timesheet" : "New Timesheet"}</h1>
         {errorMessage}
         <Form onSubmit={this.onSubmit}>
           <FormGroup row>
@@ -140,7 +141,11 @@ class EditTimesheet extends Component {
               <Input type="textarea" name="afternoon" value={this.state.afternoon} onChange={this.handleChange} min="0" />
             </Col>
           </FormGroup>
+
+          <ButtonGroup>
           <Button>Save</Button>
+          <Button onClick={() => this.props.history.goBack()}>Cancel</Button>
+        </ButtonGroup>
         </Form>
       </div>
     );
@@ -153,10 +158,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) { 
   return {
-    onSubmit: (entry, success, error) => {
-      dispatch(saveTimesheetEntry("/api", entry, success, error));
-    }
+    onSubmit: entry => dispatch(saveTimesheetEntry("/api", entry))
   }; 
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditTimesheet);
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(EditTimesheet));
