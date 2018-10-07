@@ -73,7 +73,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) { 
   return {
     onRefresh: () => {
-      dispatch(ping("/api"));
+      dispatch(ping());
     }
   };
 }

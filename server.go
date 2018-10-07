@@ -2,6 +2,7 @@
 package website
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -23,18 +24,35 @@ func RegisterApiRoutes(router *mux.Router, store *sessions.CookieStore, users Us
 	api.HandleFunc("/logout", logout).Methods("POST").Headers("Content-Type", "application/json")
 
 	api.HandleFunc("/ping", PingHandler(store, users)).Methods("GET")
+
+	newEntry := AuthRequired(store, users, NewEntryHandler(times))
+	api.HandleFunc("/timesheets/new", newEntry).Methods("POST").Headers("Content-Type", "application/json")
+
 	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"success":false,"error":"No such endpoint"}`, http.StatusNotFound)
 	})
 }
 
+// AuthRequired wraps an existing handler and will validate that the user is
+// authenticated.
+//
+// If the user is authenticated, the token ID and user ID will be added to the
+// request's context (as "token" and "user" respectively).
+//
+// Otherwise people are served a "Forbidden" page.
 func AuthRequired(store *sessions.CookieStore, users UserData, inner http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session")
 		rawTok, _ := session.Values["token"].(string)
 
 		if bson.IsObjectIdHex(rawTok) {
-			if tok := bson.ObjectIdHex(rawTok); users.GetToken(tok) != nil {
+			tokenId := bson.ObjectIdHex(rawTok)
+
+			if tok := users.GetToken(tokenId); tok != nil {
+				ctx := r.Context()
+				ctx = context.WithValue(ctx, "token", tok.Id)
+				ctx = context.WithValue(ctx, "user", tok.User)
+				r = r.WithContext(ctx)
 				inner(w, r)
 				return
 			}
@@ -198,6 +216,43 @@ func PingHandler(store *sessions.CookieStore, users UserData) http.HandlerFunc {
 
 		if err := json.NewEncoder(w).Encode(&ping); err != nil {
 			log.Printf("Unable to encode the ping response, %s", err)
+		}
+	}
+}
+
+func NewEntryHandler(times Timesheets) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId, ok := r.Context().Value("user").(bson.ObjectId)
+		if !ok {
+			log.Print("The user ID wasn't provided as part of the request context")
+			http.Error(w, `{"success":false,"error":"internal server error"}`, http.StatusInternalServerError)
+			return
+		}
+
+		var entry Entry
+		if err := json.NewDecoder(r.Body).Decode(&entry); err != nil {
+			log.Printf("Unable to parse the request, %s", err)
+			http.Error(w, fmt.Sprintf(`{"success":false,"error":"unable to parse the request"}`, err), http.StatusBadRequest)
+			return
+		}
+
+		if entry.ID == "" {
+			entry.ID = bson.NewObjectId()
+		}
+		entry.User = userId
+
+		if err := times.UpdateOrInsertTimesheet(entry); err != nil {
+			log.Printf("Error updating/inserting entry %v, %s", entry, err)
+			http.Error(w, `{"success":false,"error":"internal server error"}`, http.StatusInternalServerError)
+			return
+		}
+
+		response := struct {
+			Success bool  `json:"success"`
+			Entry   Entry `json:"entry"`
+		}{Entry: entry, Success: true}
+		if err := json.NewEncoder(w).Encode(&response); err != nil {
+			log.Printf("Unable to serialize the response, %s", err)
 		}
 	}
 }

@@ -15,7 +15,12 @@ class EditTimesheet extends Component {
     if (props.match.params.id) {
       const { id } = props.match.params;
       const entry = props.times.find(entry => entry.id.toString() === id);
-      this.state = Object.assign({ day: entry.start }, entry);
+      if (entry) {
+        this.state = Object.assign({ day: entry.start }, entry);
+      } else {
+        console.log("No entry with id", id);
+        props.history.replace("/timesheets");
+      }
     } else {
       this.state = {
         day: moment(),
@@ -47,14 +52,17 @@ class EditTimesheet extends Component {
     start = moment(day).add(start);
     end = moment.duration(end, moment.HTML5_FMT.TIME);
     end = moment(day).add(end);
+    breaks = moment.duration(breaks, "seconds");
 
-    const entry = new Entry(id, start, end, breaks * 1000, morning, afternoon)
+    const entry = new Entry(id, start, end, breaks, morning, afternoon)
     try {
       entry.validate();
     } catch (e) {
       this.setState({ error: e.toString() });
       return;
     }
+
+    console.log("Saving", entry);
 
     this.props.onSubmit(entry)
     .then(
@@ -63,6 +71,8 @@ class EditTimesheet extends Component {
         this.props.history.push("/timesheets/" + id);
       },
       error => {
+        console.error(error);
+
         if (error instanceof Error) {
           // it's some sort of exception
           this.setState({ error: error.toString() });
@@ -158,7 +168,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) { 
   return {
-    onSubmit: entry => dispatch(saveTimesheetEntry("/api", entry))
+    onSubmit: entry => dispatch(saveTimesheetEntry(entry))
   }; 
 }
 

@@ -22,4 +22,17 @@ export default class Entry {
   hoursWorked() {
     return moment.duration(this.end.diff(this.start)).subtract(this.breaks);
   }
+
+  toJSON() {
+    const cleaned = Object.assign({}, this);
+    cleaned.breaks = cleaned.breaks.asSeconds();
+    return JSON.stringify(cleaned);
+  }
+
+  clone() {
+    return new Entry(this.id, this.start, this.end, this.breaks, this.morning, this.afternoon);
+  }
 }
+
+Entry.fromJSON = json => {
+  return new Entry(json.id, json.start, json.end, json.breaks*1000, json.morning || "", json.afternoon || "")};

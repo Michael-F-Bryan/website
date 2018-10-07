@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import { FaPencilAlt as FaPencil, FaTrash } from "react-icons/fa";
 import PropTypes from "prop-types";
 import ReactMarkdown from "react-markdown";
+import { Redirect } from "react-router-dom";
 import Entry from "../Entry";
 import moment from "moment";
 import { deleteTimesheetEntry } from "../reducers";
@@ -27,12 +28,7 @@ class ViewTimesheet extends Component {
     const { times } = this.props;
     const { id } = this.props.match.params;
 
-    const found = times.find(entry => entry.id.toString() === id.toString());
-    if (!found) {
-      throw new Error(`Invalid timesheet entry id, ${id}`);
-    }
-
-    return found;
+    return times.find(entry => entry.id.toString() === id.toString());
   }
 
   onDelete() {
@@ -46,6 +42,12 @@ class ViewTimesheet extends Component {
 
   render() {
     const entry = this.getEntry();
+    if (!entry) {
+      return (
+        <Redirect to="/timesheets" />
+      );
+    }
+
     const timeWorked = Math.round((entry.end - entry.start)*10)/10;
 
     const { error } = this.state;

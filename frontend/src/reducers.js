@@ -28,7 +28,15 @@ export default function login(state = InitialState, action) {
       return Object.assign({}, state, { username });
 
     case ENTRY_SAVED:
-      throw new Error("Not Implemented");
+      const { entry } = action;
+      const times = state.times.map(e => e.clone());
+      const ix = times.findIndex(e => e.id === entry.id);
+      if (ix === -1) {
+        times.push(entry);
+      } else {
+        times[ix] = entry;
+      }
+      return Object.assign({}, state, { times });
 
     case ENTRY_DELETE:
       const { id } = action;
@@ -124,12 +132,14 @@ export function saveTimesheetEntry(entry) {
         "Accept": "application/json",
         "Content-Type": "application/json"
       },
-      body: entry
+      body: entry.toJSON()
     })
       .then(response => response.json())
       .then(json => {
           if (json.success) {
-            dispatch({ type: ENTRY_SAVED, json });
+            const got = Entry.fromJSON(json.entry);
+            dispatch({ type: ENTRY_SAVED, entry: got });
+            return got;
           } else {
             throw new Error(json.error);
           }

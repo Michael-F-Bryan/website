@@ -1,6 +1,8 @@
 package website
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -154,6 +156,30 @@ func TestPingUpdatesLastSeen(t *testing.T) {
 	}
 }
 
+func TestCreateEntry(t *testing.T) {
+	times := newMockTimes()
+	handler := NewEntryHandler(times)
+
+	entry := Entry{Start: time.Now(), End: time.Now(), Morning: "morning"}
+	jason, _ := json.Marshal(&entry)
+	req, err := http.NewRequest("POST", "/api/timesheets/new", bytes.NewReader(jason))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user := bson.NewObjectId()
+	req = req.WithContext(context.WithValue(req.Context(), "user", user))
+	w := httptest.NewRecorder()
+
+	handler(w, req)
+
+	resp := w.Result()
+
+	if status := w.Code; status != http.StatusOK {
+		t.Errorf("Expected 200 OK, got %s", http.StatusText(resp.StatusCode))
+	}
+}
+
 func integrationTestSetup() (*httptest.Server, *http.Client, *sessions.CookieStore, *MockData, *MockTimes) {
 	store := sessions.NewCookieStore([]byte("super secret key"))
 	users := newMockData()
@@ -264,10 +290,14 @@ func (m *MockData) UpdateLastSeen(id bson.ObjectId, now time.Time) error {
 	return errors.New("Token is not valid")
 }
 
-type MockTimes struct{}
+type MockTimes struct {
+	entries map[bson.ObjectId]Entry
+}
 
 func newMockTimes() *MockTimes {
-	return &MockTimes{}
+	return &MockTimes{
+		entries: make(map[bson.ObjectId]Entry),
+	}
 }
 
 func (m *MockTimes) GetEntryById(id bson.ObjectId) (Entry, error) {
@@ -275,7 +305,8 @@ func (m *MockTimes) GetEntryById(id bson.ObjectId) (Entry, error) {
 }
 
 func (m *MockTimes) UpdateOrInsertTimesheet(entry Entry) error {
-	panic("Not Implemented")
+	m.entries[entry.ID] = entry
+	return nil
 }
 
 func (m *MockTimes) DeleteTimesheet(id bson.ObjectId) error {
