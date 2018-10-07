@@ -17,18 +17,24 @@ class Header extends Component {
   constructor(props) {
     super(props);
 
-    this.toggle = this.toggle.bind(this);
-    this.logout = () => this.startLogout().then(() => this.props.history.replace("/"));
-
     this.state = {
       isOpen: false,
     };
+
+    this.onLogout = this.onLogout.bind(this);
+    this.toggle = this.toggle.bind(this);
   }
 
   toggle() {
     this.setState({
       isOpen: !this.state.isOpen
     });
+  }
+
+  onLogout(e) {
+    e.preventDefault();
+    this.props.logout()
+      .then(() => this.props.history.replace("/"));
   }
 
   render() {
@@ -50,7 +56,7 @@ class Header extends Component {
               <NavLink className="nav-link" to="/login">Login</NavLink>
             </NavItem>
             <NavItem className={username ? "" : "d-none"}>
-              <a className="nav-link" style={{cursor: "pointer"}} onClick={this.props.onLogout}>Log Out ({username})</a>
+              <a className="nav-link" style={{cursor: "pointer"}} onClick={this.onLogout}>Log Out ({username})</a>
             </NavItem>
           </Nav>
         </Collapse>
@@ -65,7 +71,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) { 
   return {
-    onLogout: e => startLogout("/api")(dispatch),
+    logout: () => dispatch(startLogout()),
   }
 };
 

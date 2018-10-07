@@ -111,7 +111,7 @@ class ViewTimesheet extends Component {
 }
 
 ViewTimesheet.propTypes = {
-  times: PropTypes.arrayOf(Entry).isRequired
+  times: PropTypes.arrayOf(PropTypes.instanceOf(Entry)).isRequired
 };
 
 function mapStateToProps(state) { 

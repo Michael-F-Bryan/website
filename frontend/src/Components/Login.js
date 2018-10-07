@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { withRouter, Redirect } from "react-router-dom";
-import { startLogin, CLEAR_LOGIN_ERROR } from "../reducers";
+import { startLogin } from "../reducers";
 
 class Login extends Component {
   constructor(props) {
@@ -13,6 +13,7 @@ class Login extends Component {
     };
 
     this.handleChange = this.handleChange.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
   }
 
   handleChange(e) {
@@ -21,17 +22,27 @@ class Login extends Component {
     this.setState(change);
   }
 
-  render() {
-    const { login_state, username, error } = this.props.login;
+  onSubmit(e) {
+    e.preventDefault();
+    const { from } = this.props.location.state || { from: { pathname: "/" } };
 
-    if (login_state === "done" && username && !error) {
-      const { from } = this.props.location.state || { from: { pathname: '/' } }
+    this.props.onLogin({e, username: this.state.username, password: this.state.password })
+      .then(
+        () => this.props.history.push(from),
+        error => this.setState({ error: error.toString() })
+      )
+    ;
+  }
+
+  render() {
+    const { error } = this.state;
+
+    if (this.props.username) {
+      const { from } = this.props.location.state || { from: { pathname: "/" } };
       return (
         <Redirect to={from} />
       );
     }
-
-    const state = this.state;
 
     var errorMessage;
 
@@ -40,27 +51,26 @@ class Login extends Component {
         <div className="alert alert-light fade show" role="alert">
           {error}
           <button type="button" className="close" aria-label="Close" onClick={this.props.dismissErrors}>
-                <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true">&times;</span>
           </button>
         </div>
       );
     }
 
-    const onSubmit = e => this.props.onLogin({e, username: state.username, password: state.password });
     const form = (
-        <form onSubmit={onSubmit}>
-          <div className="login-row">
-            <label htmlFor="username">Username</label>
-            <input type="text" name="username" id="username" placeholder="Your Username" 
-              value={state.username} onChange={this.handleChange} />
-          </div>
-          <div className="login-row">
-            <label htmlFor="password">Password</label>
-            <input type="password" name="password" id="password" 
-              value={state.password} onChange={this.handleChange}  />
-          </div>
-          <button type="submit" className="login-submit">Submit</button>
-        </form>
+      <form onSubmit={this.onSubmit}>
+        <div className="login-row">
+          <label htmlFor="username">Username</label>
+          <input type="text" name="username" id="username" placeholder="Your Username" 
+            value={this.state.username} onChange={this.handleChange} />
+        </div>
+        <div className="login-row">
+          <label htmlFor="password">Password</label>
+          <input type="password" name="password" id="password" 
+            value={this.state.password} onChange={this.handleChange}  />
+        </div>
+        <button type="submit" className="login-submit">Submit</button>
+      </form>
     );
 
     return (
@@ -74,20 +84,13 @@ class Login extends Component {
 }
 
 function mapStateToProps(state) { 
-  return { login: state.login };
+  return { username: state.username };
 }
 
 function mapDispatchToProps(dispatch) { 
   return {
-    onLogin: ({ e, username, password }) => {
-      console.log("Started logging in");
-      e.preventDefault();
-
-      dispatch(startLogin("/api", username, password));
-    },
-
-    dismissErrors: () => dispatch({ type: CLEAR_LOGIN_ERROR })
-  }
+    onLogin: ({ e, username, password }) => dispatch(startLogin(username, password)),
+  };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Login));

@@ -66,7 +66,7 @@ const PrivateRoute = ({ component: Component, authed, ...rest }) => (
 
 function mapStateToProps(state) { 
   return {
-    username: state.login.username
+    username: state.username
   };
 }
 

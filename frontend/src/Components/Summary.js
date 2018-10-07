@@ -30,7 +30,7 @@ export default class Summary extends Component {
 }
 
 Summary.propTypes = {
-  times: PropTypes.arrayOf(Entry).isRequired
+  times: PropTypes.arrayOf(PropTypes.instanceOf(Entry)).isRequired
 };
 
 function hoursWorked(start, end, breaks) {
