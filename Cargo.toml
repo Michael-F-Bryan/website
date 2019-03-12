@@ -2,6 +2,7 @@
 name = "website"
 version = "0.1.0"
 authors = ["Michael Bryan <michaelfbryan@gmail.com>"]
+description = "A website to make my life easier."
 
 [dependencies]
 rocket = { version = "0.3", features = ["tls"] }

@@ -19,7 +19,7 @@
 //! conn.create_user("michael", "Password1", true)?;
 //!
 //! // then make sure he can log in
-//! assert!(conn.authenticate("michael", "Password1").is_ok());
+//! assert!(conn.authenticate_user("michael", "Password1").is_ok());
 //!
 //! // and finally we'll print out all users in the database
 //! let users = conn.list_users()?;

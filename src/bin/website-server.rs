@@ -10,6 +10,17 @@ use failure::Error;
 fn main() {
     dotenv::dotenv().ok();
 
+    let args: Vec<_> = env::args().collect();
+    if args.len() > 1 {
+        eprintln!("Usage: {}", args[0]);
+        eprintln!();
+        eprintln!("This program doesn't take any arguments,");
+        eprintln!("\tuse environment variables instead.");
+        eprintln!();
+        eprintln!("DATABASE_URL: String to use when connecting to the database");
+        process::exit(1);
+    }
+
     if let Err(e) = run() {
         eprintln!("Error: {}", e);
 
@@ -28,7 +39,9 @@ fn run() -> Result<(), Error> {
         let pool = PostgresPool::new(db_url)?;
         server = server.manage(pool);
     } else {
-        return Err(failure::err_msg("No database specified. Please set the DATABASE_URL variable"));
+        return Err(failure::err_msg(
+            "No database specified. Please set the DATABASE_URL variable",
+        ));
     }
 
     // the server runs indefinitely, therefore if it ever exits there was

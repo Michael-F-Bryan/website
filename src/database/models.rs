@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 
 /// A website user.
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Queryable, Serialize, Deserialize)]
 pub struct User {
     /// The user ID assigned by the database.
     pub id: i32,
@@ -14,7 +14,7 @@ pub struct User {
 }
 
 /// A timesheet entry.
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Queryable, Serialize, Deserialize)]
 pub struct TimesheetEntry {
     /// The timesheet entry ID assigned by the database.
     pub id: i32,
