@@ -1,0 +1,158 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/login": {
+      "post": {
+        "summary": "Login attempts to authenticate the user.",
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "summary": "Logout ends the user's session.",
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/LogoutResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "operationId": "DescribeToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TokenDescription"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jwt_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "LoginRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "jwt_token": {
+          "type": "string"
+        }
+      }
+    },
+    "LogoutRequest": {
+      "type": "object",
+      "properties": {
+        "jwt_token": {
+          "type": "string"
+        }
+      }
+    },
+    "LogoutResponse": {
+      "type": "object"
+    },
+    "TokenDescription": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "$ref": "#/definitions/TokenState"
+        },
+        "user_name": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "TokenState": {
+      "type": "string",
+      "enum": [
+        "InvalidToken",
+        "Active",
+        "Expired"
+      ],
+      "default": "InvalidToken",
+      "description": " - InvalidToken: The token is empty, corrupted (e.g. encrypted with the wrong key), or\notherwise invalid.\n - Active: The token is valid and currently active.\n - Expired: The token was valid, but has since expired."
+    }
+  }
+}

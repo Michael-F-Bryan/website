@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// Auth manages authentication and authorization.
+service Auth {
+    // Login attempts to authenticate the user.
+    rpc Login(LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/api/login"
+            body: "*"
+        };
+    }
+
+    // Logout ends the user's session.
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {
+        option (google.api.http) = {
+            post: "/api/logout"
+            body: "*"
+        };
+    }
+
+    // DescribeToken provides more information about the session identified by
+    // a JSON Web Token.
+    rpc DescribeToken(DescribeTokenRequest) returns (TokenDescription) {
+        option (google.api.http) = {
+            get: "/api/ping",
+        };
+    }
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string jwt_token = 1;
+}
+
+message LogoutRequest {
+    string jwt_token = 1;
+}
+
+message LogoutResponse { }
+
+message DescribeTokenRequest {
+    string jwt_token = 1;
+}
+
+enum TokenState {
+    // The token is empty, corrupted (e.g. encrypted with the wrong key), or
+    // otherwise invalid.
+    InvalidToken = 0;
+    // The token is valid and currently active.
+    Active = 1;
+    // The token was valid, but has since expired.
+    Expired = 2;
+}
+
+message TokenDescription {
+    TokenState state = 1;
+    // The username this session is attached to.
+    string username = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp expires_at = 4;
+    // The various roles/permissions this user has.
+    repeated string roles = 5;
+}
