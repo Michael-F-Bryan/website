@@ -1,4 +1,12 @@
 export default class User {
+    /**
+     * Load a User from some JWT.
+     * @param token the raw JSON Web Token.
+     */
+    public static FromJWT(token: string): User {
+        throw new Error('Unimplemented');
+    }
+
     public static Anonymous(): User {
         return new User('', '', UserLevel.Anonymous);
     }
@@ -28,6 +36,6 @@ export enum UserLevel {
     Admin = 2,
 }
 
-export function isUserLevel(thing?: any): thing is UserLevel {
+export function isUserLevel(thing: any): thing is UserLevel {
     return thing === UserLevel.Anonymous || thing === UserLevel.Normal || thing === UserLevel.Admin;
 }

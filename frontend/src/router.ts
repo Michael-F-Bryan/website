@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Home from '@/views/Home.vue';
 import ViewTimes from '@/views/ViewTimes.vue';
+import ViewTime from '@/views/ViewTime.vue';
 import AdminDashboard from '@/views/AdminDashboard.vue';
 import Portfolio from '@/views/Portfolio.vue';
 import Login from '@/views/Login.vue';
@@ -18,6 +19,12 @@ const router = new Router({
       path: '/portfolio',
       name: 'portfolio',
       component: Portfolio,
+    },
+    {
+      path: '/times/:id',
+      name: 'view-time',
+      component: ViewTime,
+      meta: { requiredLevel: UserLevel.Normal },
     },
     {
       path: '/times',
