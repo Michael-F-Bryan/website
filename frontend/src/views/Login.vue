@@ -4,7 +4,7 @@
 
         <b-row class="justify-content-md-center">
             <b-col md="6">
-                <b-form @submit="onSubmit">
+                <b-form @submit="onSubmit" autocomplete="on">
                     <b-form-group label="Username" label-for="name" label-cols-md="2">
                         <b-form-input type="text" v-model="username" name="name"/>
                     </b-form-group>

@@ -27,7 +27,8 @@ import User from '@/client/User';
 @Component({})
 export default class Header extends Vue {
     public logout() {
-        this.$store.dispatch('logout');
+        this.$store.dispatch('logout')
+            .then(() => this.$router.push({ name: 'home' }));
     }
 
     get user(): User {

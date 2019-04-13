@@ -7,7 +7,7 @@
         <b-row align-h="end">
             <b-col lg="4" md="auto">
                 <b-button-group>
-                    <b-button>New</b-button>
+                    <b-button :to="{name: 'new-time'}">New</b-button>
                     <b-button @click="download">Download</b-button>
                     <b-button>Share</b-button>
                 </b-button-group>
@@ -65,8 +65,9 @@ export default class ViewTimes extends Vue {
         Object.values(this.times)
             .sort((l: Entry, r: Entry) => l.start.diff(r.start))
             .forEach((entry: Entry) => {
+                const end = entry.end !== undefined ? entry.end.toISOString() : '';
                 const line = entry.start.toISOString()
-                    + ',' + entry.end.toISOString()
+                    + ',' + end
                     + ',' + entry.timeWorked.asHours().toString();
                 lines.push(line);
             });

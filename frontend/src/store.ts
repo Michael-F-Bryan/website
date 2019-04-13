@@ -18,10 +18,11 @@ export default new Vuex.Store({
     setUser(state, user) {
       state.currentUser = user;
     },
-    setTimes(state, entries: Entry[]) {
-      const times: EntryMap = {};
-      entries.forEach((entry: Entry) => times[entry.id] = entry);
-      state.times = times;
+    updateTimes(state, entries: Entry[]) {
+      entries.forEach((entry: Entry) => Vue.set(state.times, entry.id, entry));
+    },
+    appendTime(state, entry: Entry) {
+      Vue.set(state.times, entry.id, entry);
     },
   },
   actions: {
@@ -35,7 +36,13 @@ export default new Vuex.Store({
     },
     fetchTimes(ctx) {
       const entries = [new Entry('first', new Date('2019-01-01 08:00'), new Date('2019-01-01 17:00'))];
-      ctx.commit('setTimes', entries);
+      ctx.commit('updateTimes', entries);
+    },
+    createTime(ctx, { start, end, breaks, description }): Entry {
+      const id = btoa(start.toString() + end.toString() + description);
+      const entry = new Entry(id, start, end, description, breaks);
+      ctx.commit('appendTime', entry);
+      return entry;
     },
   },
 });
