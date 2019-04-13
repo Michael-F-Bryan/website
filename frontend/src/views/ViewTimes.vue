@@ -1,6 +1,20 @@
 <template>
     <b-container>
-        <h1>View Timesheet</h1>
+        <b-row class="justify-content-md-center">
+            <h1>View Timesheet</h1>
+        </b-row>
+
+        <b-row align-h="end">
+            <b-col lg="4" md="auto">
+                <b-button-group>
+                    <b-button>New</b-button>
+                    <b-button @click="download">Download</b-button>
+                    <b-button>Share</b-button>
+                </b-button-group>
+            </b-col>
+        </b-row>
+
+        <br>
 
         <b-row class="justify-content-md-center">
             <b-col md="8">
@@ -43,6 +57,38 @@ import Entry from '@/client/Entry';
 export default class ViewTimes extends Vue {
     public mounted() {
         this.$store.dispatch('fetchTimes');
+    }
+
+    public download() {
+        const lines = ['Start,End,Time Worked'];
+
+        Object.values(this.times)
+            .sort((l: Entry, r: Entry) => l.start.diff(r.start))
+            .forEach((entry: Entry) => {
+                const line = entry.start.toISOString()
+                    + ',' + entry.end.toISOString()
+                    + ',' + entry.timeWorked.asHours().toString();
+                lines.push(line);
+            });
+
+        this.downloadContent('times.csv', lines.join('\n'), 'text/csv');
+    }
+
+    private downloadContent(filename: string, body: string, mimeType?: string) {
+        // taken straight from: https://stackoverflow.com/a/35251739
+        mimeType = mimeType || 'text/plain';
+
+        const blob = new Blob([body], { type: mimeType });
+
+        const dlink = document.createElement('a');
+        dlink.download = filename;
+        dlink.href = window.URL.createObjectURL(blob);
+        dlink.onclick = (e) => {
+            setTimeout(() => window.URL.revokeObjectURL(dlink.href), 1500);
+        };
+
+        dlink.click();
+        dlink.remove();
     }
 
     get times(): Entry[] {
