@@ -6,6 +6,7 @@
 
         <b-collapse id="nav-collapse" is-nav>
             <b-navbar-nav>
+                <b-nav-item :to="{name: 'resume'}">Resume</b-nav-item>
                 <b-nav-item :to="{name: 'portfolio'}">Portfolio</b-nav-item>
                 <b-nav-item :to="{name: 'view-times'}" v-if="user.isLoggedIn">Times</b-nav-item>
                 <b-nav-item :to="{name: 'admin-dashboard'}" v-if="user.isAdmin">Admin Dashboard</b-nav-item>

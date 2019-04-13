@@ -4,6 +4,7 @@ import Home from '@/views/Home.vue';
 import ViewTimes from '@/views/ViewTimes.vue';
 import ViewTime from '@/views/ViewTime.vue';
 import AdminDashboard from '@/views/AdminDashboard.vue';
+import Resume from '@/views/Resume.vue';
 import Portfolio from '@/views/Portfolio.vue';
 import Login from '@/views/Login.vue';
 import store from '@/store';
@@ -15,6 +16,11 @@ const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
+    {
+      path: '/resume',
+      name: 'resume',
+      component: Resume,
+    },
     {
       path: '/portfolio',
       name: 'portfolio',
