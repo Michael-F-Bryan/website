@@ -12,7 +12,7 @@ A small website for managing my personal affairs.
 
 ## Follow-up Questions
 
-- Does the application require authentication ? i.e. do users need to log in?
+- Does the application require authentication? i.e. do users need to log in?
 - If authentication is needed, are there different user levels?
 - Do we need an explicit administration panel?
 - What constitutes an activity, and how detailed do they need to be?
