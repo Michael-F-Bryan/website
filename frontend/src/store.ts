@@ -21,7 +21,7 @@ export default new Vuex.Store({
     updateTimes(state, entries: Entry[]) {
       entries.forEach((entry: Entry) => Vue.set(state.times, entry.id, entry));
     },
-    appendTime(state, entry: Entry) {
+    updateTime(state, entry: Entry) {
       Vue.set(state.times, entry.id, entry);
     },
   },
@@ -38,10 +38,14 @@ export default new Vuex.Store({
       const entries = [new Entry('first', new Date('2019-01-01 08:00'), new Date('2019-01-01 17:00'))];
       ctx.commit('updateTimes', entries);
     },
-    createTime(ctx, { start, end, breaks, description }): Entry {
-      const id = btoa(start.toString() + end.toString() + description);
+    updateTime(ctx, { start, end, breaks, description, id }): Entry {
+      if (!id || id.length === 0) {
+        // no ID was provided, generate a "random" one
+        id = btoa(start.toString() + end.toString() + description);
+      }
+
       const entry = new Entry(id, start, end, description, breaks);
-      ctx.commit('appendTime', entry);
+      ctx.commit('updateTime', entry);
       return entry;
     },
   },

@@ -4,6 +4,13 @@
             <h1 class="my-md-3">View Time ({{entry.start.format('dddd MMMM Do, YYYY')}})</h1>
         </b-row>
 
+        <b-row align-h="center" class="my-md-1">
+            <b-button-group>
+                <b-button :to="{name: 'edit-time', params: {entryID: entry.id}}">Edit</b-button>
+                <b-button>Delete</b-button>
+            </b-button-group>
+        </b-row>
+
         <b-card title="Summary">
             <dl class="row">
                 <dt class="col-md-3">Start</dt>

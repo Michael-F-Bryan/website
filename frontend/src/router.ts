@@ -3,7 +3,7 @@ import Router from 'vue-router';
 import Home from '@/views/Home.vue';
 import ViewTimes from '@/views/ViewTimes.vue';
 import ViewTime from '@/views/ViewTime.vue';
-import CreateTime from '@/views/CreateTime.vue';
+import EditTime from '@/views/EditTime.vue';
 import AdminDashboard from '@/views/AdminDashboard.vue';
 import Resume from '@/views/Resume.vue';
 import Portfolio from '@/views/Portfolio.vue';
@@ -30,7 +30,13 @@ const router = new Router({
     {
       path: '/times/new',
       name: 'new-time',
-      component: CreateTime,
+      component: EditTime,
+      meta: { requiredLevel: UserLevel.Normal },
+    },
+    {
+      path: '/times/:id/edit',
+      name: 'edit-time',
+      component: EditTime,
       meta: { requiredLevel: UserLevel.Normal },
     },
     {
