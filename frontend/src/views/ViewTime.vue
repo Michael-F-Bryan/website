@@ -7,9 +7,16 @@
         <b-row align-h="center" class="my-md-1">
             <b-button-group>
                 <b-button :to="{name: 'edit-time', params: {entryID: entry.id}}">Edit</b-button>
-                <b-button>Delete</b-button>
+                <b-button v-b-modal.delete-prompt>Delete</b-button>
             </b-button-group>
         </b-row>
+
+        <b-modal
+            id="delete-prompt"
+            ok-title="Yes"
+            cancel-title="No"
+            @ok="onDelete"
+        >Are you sure you want to delete this entry?</b-modal>
 
         <b-card title="Summary">
             <dl class="row">
@@ -57,6 +64,11 @@ export default class ViewTime extends Vue {
 
     get description(): string {
         return marked(this.entry.description);
+    }
+
+    public onDelete(e: Event) {
+        this.$store.dispatch('deleteTime', this.entry.id)
+            .then(() => this.$router.replace({ name: 'view-times' }), alert);
     }
 }
 </script>

@@ -24,6 +24,9 @@ export default new Vuex.Store({
     updateTime(state, entry: Entry) {
       Vue.set(state.times, entry.id, entry);
     },
+    deleteTime(state, id: string) {
+      Vue.delete(state.times, id);
+    },
   },
   actions: {
     login(ctx, { username, password }) {
@@ -47,6 +50,9 @@ export default new Vuex.Store({
       const entry = new Entry(id, start, end, description, breaks);
       ctx.commit('updateTime', entry);
       return entry;
+    },
+    deleteTime(ctx, id: string) {
+      ctx.commit('deleteTime', id);
     },
   },
 });
