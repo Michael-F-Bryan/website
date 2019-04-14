@@ -1,6 +1,8 @@
 <template>
     <b-container>
-        <h1>Portfolio</h1>
+        <b-row align-h="center" class="my-md-3">
+            <h1>Portfolio</h1>
+        </b-row>
     </b-container>
 </template>
 

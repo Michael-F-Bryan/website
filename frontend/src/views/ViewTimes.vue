@@ -1,7 +1,7 @@
 <template>
     <b-container>
         <b-row class="justify-content-md-center">
-            <h1>View Timesheet</h1>
+            <h1 class="my-md-3">View Timesheet</h1>
         </b-row>
 
         <b-row align-h="end">

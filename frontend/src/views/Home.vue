@@ -1,6 +1,6 @@
 <template>
     <b-container>
-        <h1>Michael-F-Bryan</h1>
+        <h1 class="my-md-3">Michael-F-Bryan</h1>
     </b-container>
 </template>
 

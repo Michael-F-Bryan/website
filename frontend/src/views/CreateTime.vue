@@ -1,6 +1,6 @@
 <template>
     <b-container>
-        <b-row>
+        <b-row align-h="center" class="my-md-3">
             <h1>Create Timesheet Entry</h1>
         </b-row>
 
@@ -27,9 +27,11 @@
                 />
             </b-form-group>
 
-            <b-form-group>
-                <b-button type="submit">Create</b-button>
-            </b-form-group>
+            <b-row align-h="center">
+                <b-form-group>
+                    <b-button type="submit">Create</b-button>
+                </b-form-group>
+            </b-row>
         </b-form>
     </b-container>
 </template>

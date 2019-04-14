@@ -1,6 +1,8 @@
 <template>
     <b-container>
-        <h1>Login</h1>
+        <b-row align-h="center">
+            <h1 class="my-md-3">Login</h1>
+        </b-row>
 
         <b-row class="justify-content-md-center">
             <b-col md="6">

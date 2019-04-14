@@ -1,8 +1,6 @@
 <template>
     <b-container>
-        <br>
-
-        <p>
+        <p class="my-md-3">
             <small class="text-muted">
                 <a href="./resume.pdf">click here to download the PDF.</a>
             </small>

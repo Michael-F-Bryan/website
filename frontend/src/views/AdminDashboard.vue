@@ -1,7 +1,7 @@
 <template>
     <b-container>
         <b-row align-h="center">
-            <h1>Admin Dashboard</h1>
+            <h1 class="my-md-3">Admin Dashboard</h1>
         </b-row>
 
         <b-row align-h="end">
