@@ -8,10 +8,12 @@
             <b-navbar-nav>
                 <b-nav-item :to="{name: 'resume'}">Resume</b-nav-item>
                 <b-nav-item :to="{name: 'portfolio'}">Portfolio</b-nav-item>
-                <b-nav-item-dropdown text="Experiments" right>
+                <b-nav-item-dropdown text="WebGL Experiments" right>
                     <b-dropdown-item
-                        :to="{name: 'experiment', params: {name: 'hello-world'}}"
-                    >Hello World</b-dropdown-item>
+                        v-for="experiment in experiments"
+                        :key="experiment.slug"
+                        :to="{name: 'experiment', params: {name: experiment.slug}}"
+                    >{{experiment.title}}</b-dropdown-item>
                 </b-nav-item-dropdown>
                 <b-nav-item :to="{name: 'view-times'}" v-if="user.isLoggedIn">Times</b-nav-item>
                 <b-nav-item :to="{name: 'admin-dashboard'}" v-if="user.isAdmin">Admin Dashboard</b-nav-item>
@@ -28,6 +30,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import User from '@/client/User';
+import { ExperimentFactory, experiments } from '../experiments/Experiment';
 
 @Component({})
 export default class Header extends Vue {
@@ -38,6 +41,10 @@ export default class Header extends Vue {
 
     get user(): User {
         return this.$store.state.currentUser;
+    }
+
+    get experiments(): ExperimentFactory[] {
+        return experiments;
     }
 }
 </script>

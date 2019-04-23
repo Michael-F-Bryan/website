@@ -1,7 +1,7 @@
 <template>
     <b-container>
         <b-row align-h="center" class="my-md-3">
-            <h1>Experiments</h1>
+            <h1>{{title}}</h1>
         </b-row>
 
         <canvas ref="canvas"></canvas>
@@ -10,43 +10,45 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import Experiment from '../experiments/Experiment';
+import Experiment, { experiments, ExperimentFactory } from '../experiments/Experiment';
 import HelloWorld from '../experiments/HelloWorld';
 import { Dictionary } from 'vue-router/types/router';
-import { WebGLRenderer } from 'three';
-
-type ExperimentConstructor = new () => Experiment;
-
-const experiments: Dictionary<ExperimentConstructor> = {
-    'hello-world': HelloWorld,
-};
+import { WebGLRenderer, Clock } from 'three';
 
 @Component({})
 export default class Experiments extends Vue {
-    private experiment?: Experiment;
-    private renderer?: WebGLRenderer;
-    private token?: number;
-    private lastFrame: Date = new Date();
+    private experiment: Experiment | null = null;
+    private renderer: WebGLRenderer | null = null;
+    private clock = new Clock();
+
+    get slug(): string {
+        return this.$route.params.slug || 'unknown';
+    }
+
+    get title(): string {
+        if (this.factory) {
+            return this.factory.title;
+        } else {
+            throw new Error(`Unknown experiment, "${this.slug}"`);
+        }
+    }
 
     public mounted() {
         this.renderer = new WebGLRenderer({ canvas: this.canvas });
 
-        const name = this.$route.params.name;
-        const constructor = experiments[name];
-
-        if (constructor === undefined) {
+        // make sure we know which experiment we're running
+        if (!this.factory) {
             this.$router.push('/');
             return;
         }
 
-        this.experiment = new constructor();
+        this.experiment = this.factory.create();
         this.experiment.initialize(this.canvas, this.renderer);
 
-
-        this.token = requestAnimationFrame(this.animate);
         window.addEventListener('resize', this.onResize);
         this.canvas.addEventListener('mousedown', this.onMouseDown);
         this.canvas.addEventListener('keypress', this.onKeyPress);
+        this.renderer.setAnimationLoop(this.animate);
 
         this.onResize();
     }
@@ -56,8 +58,14 @@ export default class Experiments extends Vue {
             this.experiment.beforeDestroy();
         }
 
-        if (this.token) {
-            cancelAnimationFrame(this.token);
+        if (this.renderer) {
+            // Hacky typecast because you can clear setAnimationLoop by passing
+            // in null, but annoyingly their type definitions don't accept
+            // `Function|null`...
+            type Callback = () => void;
+            type SetAnimationLoop = (_: Callback | null) => void;
+            const sal = this.renderer.setAnimationLoop as SetAnimationLoop;
+            sal(null);
         }
 
         window.removeEventListener('resize', this.onResize);
@@ -65,20 +73,20 @@ export default class Experiments extends Vue {
         this.canvas.removeEventListener('keypress', this.onKeyPress);
     }
 
+    private get factory(): ExperimentFactory | undefined {
+        return experiments.find((f) => f.slug === this.slug);
+    }
+
     private animate() {
-        const now = new Date();
-        const dt = (now.valueOf() - this.lastFrame.valueOf()) / 1000;
+        const dt = this.clock.getDelta();
 
         if (this.experiment && this.renderer) {
             this.experiment.animate(this.renderer, dt);
         }
-
-        this.token = requestAnimationFrame(this.animate);
-        this.lastFrame = now;
     }
 
     private onResize() {
-        this.canvas.height = window.innerHeight - this.canvas.offsetTop - 10;
+        this.canvas.height = Math.max(window.innerHeight - this.canvas.offsetTop - 10, 100);
         this.canvas.width = window.innerWidth - 2 * this.canvas.offsetLeft;
 
         if (this.renderer) {

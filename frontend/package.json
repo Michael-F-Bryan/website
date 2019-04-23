@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
+  "license": "MIT OR Apache-2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -14,6 +15,7 @@
     "core-js": "^2.6.5",
     "marked": "^0.6.2",
     "moment": "^2.24.0",
+    "three": "^0.103.0",
     "vue": "^2.6.10",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^8.0.0",

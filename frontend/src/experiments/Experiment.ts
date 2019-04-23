@@ -1,4 +1,5 @@
 import { WebGLRenderer } from 'three';
+import HelloWorld from './HelloWorld';
 
 /**
  * Something which can be used in a WebGL experiment.
@@ -25,3 +26,20 @@ export default interface Experiment {
     onKeyPress?(e: KeyboardEvent): void;
     onResize?(canvas: HTMLCanvasElement): void;
 }
+
+export interface ExperimentFactory {
+    readonly title: string;
+    readonly slug: string;
+    create(): Experiment;
+}
+
+class HelloWorldFactory implements ExperimentFactory {
+    public readonly title: string = 'Hello World';
+    public readonly slug: string = 'hello-world';
+
+    public create(): Experiment {
+        return new HelloWorld();
+    }
+}
+
+export const experiments: ExperimentFactory[] = [new HelloWorldFactory()];

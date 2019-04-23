@@ -1,8 +1,8 @@
 import {
     WebGLRenderer, PerspectiveCamera, Scene, Mesh, MeshLambertMaterial,
-    BoxGeometry, PointLight,
+    BoxGeometry, PointLight, MeshNormalMaterial,
 } from 'three';
-import Experiment from './Experiment';
+import Experiment, { ExperimentFactory } from './Experiment';
 import { cleanupObject3D } from './helpers';
 
 /**
@@ -10,27 +10,22 @@ import { cleanupObject3D } from './helpers';
  */
 export default class HelloWorld implements Experiment {
     private BackgroundColour = 0xeeeeee;
-    private LightColour = 0xffed4f;
-    private MaterialColour = 0x2e8fff;
 
     private camera: PerspectiveCamera = new PerspectiveCamera(75);
     private scene: Scene = new Scene();
-    private light = new PointLight(this.LightColour, 1.0);
     private box?: Mesh;
 
     public initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer): void {
         renderer.setClearColor(this.BackgroundColour);
         this.onResize(canvas);
 
-        this.scene.add(this.light);
-
         const geometry = new BoxGeometry(10, 10, 10);
-        const material = new MeshLambertMaterial({ color: this.MaterialColour });
+        const material = new MeshNormalMaterial();
         this.box = new Mesh(geometry, material);
         this.scene.add(this.box);
 
-        this.light.position.set(5, 20, 20);
-        this.camera.position.set(0, 0, 30);
+        this.camera.position.set(0, 0, 20);
+        this.camera.lookAt(this.box.position);
     }
 
     public animate(renderer: WebGLRenderer, dt: number): void {
