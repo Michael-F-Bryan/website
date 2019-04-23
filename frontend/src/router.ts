@@ -8,6 +8,7 @@ import AdminDashboard from '@/views/AdminDashboard.vue';
 import Resume from '@/views/Resume.vue';
 import Portfolio from '@/views/Portfolio.vue';
 import Login from '@/views/Login.vue';
+import Experiment from '@/views/Experiments.vue';
 import store from '@/store';
 import { UserLevel, isUserLevel } from './client/User';
 
@@ -50,6 +51,11 @@ const router = new Router({
       name: 'view-times',
       component: ViewTimes,
       meta: { requiredLevel: UserLevel.Normal },
+    },
+    {
+      path: '/experiment/:name',
+      name: 'experiment',
+      component: Experiment,
     },
     {
       path: '/admin',
