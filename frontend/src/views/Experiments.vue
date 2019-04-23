@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import Experiment, { experiments, ExperimentFactory } from '../experiments/Experiment';
+import Experiment, { experiments, Factory } from '../experiments/Experiment';
 import HelloWorld from '../experiments/HelloWorld';
 import { Dictionary } from 'vue-router/types/router';
 import { WebGLRenderer, Clock } from 'three';
@@ -47,7 +47,9 @@ export default class Experiments extends Vue {
 
         window.addEventListener('resize', this.onResize);
         this.canvas.addEventListener('mousedown', this.onMouseDown);
-        this.canvas.addEventListener('keypress', this.onKeyPress);
+        this.canvas.addEventListener('mouseup', this.onMouseUp);
+        this.canvas.addEventListener('keydown', this.onKeyDown);
+        this.canvas.addEventListener('keyup', this.onKeyUp);
         this.renderer.setAnimationLoop(this.animate);
 
         this.onResize();
@@ -71,10 +73,12 @@ export default class Experiments extends Vue {
         window.removeEventListener('resize', this.onResize);
 
         this.canvas.removeEventListener('mousedown', this.onMouseDown);
-        this.canvas.removeEventListener('keypress', this.onKeyPress);
+        this.canvas.removeEventListener('mouseup', this.onMouseUp);
+        this.canvas.removeEventListener('keydown', this.onKeyDown);
+        this.canvas.removeEventListener('keyup', this.onKeyUp);
     }
 
-    private get factory(): ExperimentFactory | undefined {
+    private get factory(): Factory | undefined {
         return experiments.find((f) => f.slug === this.slug);
     }
 
@@ -105,9 +109,21 @@ export default class Experiments extends Vue {
         }
     }
 
-    private onKeyPress(e: KeyboardEvent) {
-        if (this.experiment && this.experiment.onKeyPress) {
-            this.experiment.onKeyPress(e);
+    private onMouseUp(e: MouseEvent) {
+        if (this.experiment && this.experiment.onMouseUp) {
+            this.experiment.onMouseUp(e);
+        }
+    }
+
+    private onKeyDown(e: KeyboardEvent) {
+        if (this.experiment && this.experiment.onKeyDown) {
+            this.experiment.onKeyDown(e);
+        }
+    }
+
+    private onKeyUp(e: KeyboardEvent) {
+        if (this.experiment && this.experiment.onKeyUp) {
+            this.experiment.onKeyUp(e);
         }
     }
 

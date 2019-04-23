@@ -30,7 +30,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import User from '@/client/User';
-import { ExperimentFactory, experiments } from '../experiments/Experiment';
+import { Factory, experiments } from '../experiments/Experiment';
 
 @Component({})
 export default class Header extends Vue {
@@ -43,7 +43,7 @@ export default class Header extends Vue {
         return this.$store.state.currentUser;
     }
 
-    get experiments(): ExperimentFactory[] {
+    get experiments(): Factory[] {
         return experiments;
     }
 }

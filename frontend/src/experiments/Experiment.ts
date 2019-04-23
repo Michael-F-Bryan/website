@@ -22,24 +22,30 @@ export default interface Experiment {
      * from the DOM. This lets it do any necessary cleanup.
      */
     beforeDestroy?(): void;
+    onMouseMove?(e: MouseEvent): void;
     onMouseDown?(e: MouseEvent): void;
-    onKeyPress?(e: KeyboardEvent): void;
+    onMouseUp?(e: MouseEvent): void;
+    onKeyDown?(e: KeyboardEvent): void;
+    onKeyUp?(e: KeyboardEvent): void;
     onResize?(canvas: HTMLCanvasElement): void;
 }
 
-export interface ExperimentFactory {
-    readonly title: string;
-    readonly slug: string;
-    create(): Experiment;
-}
+type ExperimentConstructor = new () => Experiment;
 
-class HelloWorldFactory implements ExperimentFactory {
-    public readonly title: string = 'Hello World';
-    public readonly slug: string = 'hello-world';
+export class Factory {
+    public readonly title: string;
+    public readonly slug: string;
+    private readonly creator: ExperimentConstructor;
+
+    public constructor(title: string, slug: string, create: ExperimentConstructor) {
+        this.title = title;
+        this.slug = slug;
+        this.creator = create;
+    }
 
     public create(): Experiment {
-        return new HelloWorld();
+        return new this.creator();
     }
 }
 
-export const experiments: ExperimentFactory[] = [new HelloWorldFactory()];
+export const experiments: Factory[] = [new Factory('Hello World', 'hello-world', HelloWorld)];
