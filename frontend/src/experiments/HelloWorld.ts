@@ -1,3 +1,4 @@
+import { GUI } from 'dat.gui';
 import {
     WebGLRenderer, PerspectiveCamera, Scene, Mesh, BoxGeometry,
     MeshNormalMaterial,
@@ -15,7 +16,7 @@ export default class HelloWorld implements Experiment {
     private scene: Scene = new Scene();
     private box?: Mesh;
 
-    public initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer): void {
+    public initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer, controls: GUI): void {
         renderer.setClearColor(this.BackgroundColour);
         this.onResize(canvas);
 

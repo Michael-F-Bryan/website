@@ -1,3 +1,4 @@
+import { GUI } from 'dat.gui';
 import { WebGLRenderer } from 'three';
 import HelloWorld from './HelloWorld';
 
@@ -10,7 +11,7 @@ export default interface Experiment {
      * @param canvas The canvas this experiment should draw to.
      * @param renderer The renderer which will be used for this experiment.
      */
-    initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer): void;
+    initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer, controls: GUI): void;
     /**
      * Execute any update and rendering logic.
      * @param dt The number of seconds since the last frame.

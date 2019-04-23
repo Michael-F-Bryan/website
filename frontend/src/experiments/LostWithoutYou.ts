@@ -21,13 +21,13 @@ export default class LostWithoutYou implements Experiment {
     public initialize(canvas: HTMLCanvasElement, renderer: WebGLRenderer): void {
         renderer.setClearColor(this.BackgroundColour);
 
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     public animate(renderer: WebGLRenderer, dt: number): void {
         renderer.render(this.scene, this.camera);
 
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     public onResize(canvas: HTMLCanvasElement): void {
