@@ -10,7 +10,8 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { Experiment, HelloWorld } from '../client/Experiment';
+import Experiment from '../experiments/Experiment';
+import HelloWorld from '../experiments/HelloWorld';
 import { Dictionary } from 'vue-router/types/router';
 import { WebGLRenderer } from 'three';
 
@@ -106,6 +107,3 @@ export default class Experiments extends Vue {
     }
 }
 </script>
-
-<style>
-</style>
