@@ -12,7 +12,7 @@
                     <b-dropdown-item
                         v-for="experiment in experiments"
                         :key="experiment.slug"
-                        :to="{name: 'experiment', params: {name: experiment.slug}}"
+                        :to="{name: 'experiment', params: {slug: experiment.slug}}"
                     >{{experiment.title}}</b-dropdown-item>
                 </b-nav-item-dropdown>
                 <b-nav-item :to="{name: 'view-times'}" v-if="user.isLoggedIn">Times</b-nav-item>

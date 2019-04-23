@@ -1,8 +1,8 @@
 import {
-    WebGLRenderer, PerspectiveCamera, Scene, Mesh, MeshLambertMaterial,
-    BoxGeometry, PointLight, MeshNormalMaterial,
+    WebGLRenderer, PerspectiveCamera, Scene, Mesh, BoxGeometry,
+    MeshNormalMaterial,
 } from 'three';
-import Experiment, { ExperimentFactory } from './Experiment';
+import Experiment from './Experiment';
 import { cleanupObject3D } from './helpers';
 
 /**

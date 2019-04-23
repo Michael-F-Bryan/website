@@ -53,7 +53,7 @@ const router = new Router({
       meta: { requiredLevel: UserLevel.Normal },
     },
     {
-      path: '/experiment/:name',
+      path: '/experiment/:slug',
       name: 'experiment',
       component: Experiment,
     },

@@ -69,6 +69,7 @@ export default class Experiments extends Vue {
         }
 
         window.removeEventListener('resize', this.onResize);
+
         this.canvas.removeEventListener('mousedown', this.onMouseDown);
         this.canvas.removeEventListener('keypress', this.onKeyPress);
     }
