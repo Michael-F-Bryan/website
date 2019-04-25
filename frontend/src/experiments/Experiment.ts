@@ -1,6 +1,7 @@
 import { GUI } from 'dat.gui';
 import { WebGLRenderer } from 'three';
 import HelloWorld from './HelloWorld';
+import NBodySimulation from './NBodySimulation';
 
 /**
  * Something which can be used in a WebGL experiment.
@@ -49,4 +50,7 @@ export class Factory {
     }
 }
 
-export const experiments: Factory[] = [new Factory('Hello World', 'hello-world', HelloWorld)];
+export const experiments: Factory[] = [
+    new Factory('Hello World', 'hello-world', HelloWorld),
+    new Factory('N Body Simulation', 'n-bodies', NBodySimulation),
+];

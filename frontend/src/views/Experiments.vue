@@ -20,7 +20,6 @@ import { WebGLRenderer, Clock } from 'three';
 
 @Component({})
 export default class Experiments extends Vue {
-    public showStats: boolean = true;
     private experiment: Experiment | null = null;
     private renderer: WebGLRenderer | null = null;
     private clock = new Clock();
@@ -39,7 +38,7 @@ export default class Experiments extends Vue {
         }
     }
 
-    get canvas(): HTMLCanvasElement {
+    private get canvas(): HTMLCanvasElement {
         return this.$refs.canvas as HTMLCanvasElement;
     }
 
@@ -98,7 +97,8 @@ export default class Experiments extends Vue {
     }
 
     private setupOverlays() {
-        this.controls.add(this, 'showStats').listen();
+        // TODO: add a debug flag or something
+        // this.controls.add(this, 'debug').listen();
 
         if (this.canvas.parentElement) {
             this.stats.showPanel(0);
@@ -129,14 +129,14 @@ export default class Experiments extends Vue {
             this.experiment.onResize(this.canvas);
         }
 
-        this.stats.dom.style.top = this.canvas.offsetTop + 'px';
-        this.stats.dom.style.left = this.canvas.offsetLeft + 'px';
-
         this.controls.domElement.style.position = 'fixed';
         this.controls.domElement.style.top = this.canvas.offsetTop + 'px';
         const right = this.canvas.offsetLeft + this.canvas.width - this.controls.width;
         this.controls.domElement.style.left = right + 'px';
-        (this.controls.domElement as any).style['z-index'] = 10000;
+
+        this.stats.dom.style.position = 'fixed';
+        this.stats.dom.style.top = this.canvas.offsetTop + 'px';
+        this.stats.dom.style.left = this.canvas.offsetLeft + 'px';
     }
 
     private onMouseDown(e: MouseEvent) {
