@@ -6,6 +6,8 @@ import Experiment from './Experiment';
 import { GUI } from 'dat.gui';
 
 export default class NBodySimulation implements Experiment {
+    private static readonly InitialWorldSize: number = 1e9;
+
     private running: boolean = true;
     private bodies: Body[] = [];
     private materials: Material[] = [new MeshNormalMaterial()];
@@ -24,12 +26,8 @@ export default class NBodySimulation implements Experiment {
         for (let i = 0; i < n; i++) {
             const radius = 1 + Math.random() * 10;
             const body = new Body(this.randomMaterial(), radius);
-            body.centre.x = Math.random() * 100 - 50;
-            body.centre.y = Math.random() * 100 - 50;
-            body.centre.z = Math.random() * 100 - 50;
-            body.velocity.x = Math.random() * 100 - 50;
-            body.velocity.y = Math.random() * 100 - 50;
-            body.velocity.z = Math.random() * 100 - 50;
+            body.centre = this.randomVector(NBodySimulation.InitialWorldSize);
+            body.velocity = this.randomVector(NBodySimulation.InitialWorldSize);
             this.scene.add(body.mesh);
 
             this.bodies.push(body);
@@ -47,7 +45,12 @@ export default class NBodySimulation implements Experiment {
 
     public animate(renderer: WebGLRenderer, dt: number): void {
         renderer.render(this.scene, this.camera);
-        this.updateWorld(dt);
+
+        if (this.running) {
+            this.updateWorld(dt);
+        }
+
+        this.zoomToFit();
     }
 
     public beforeDestroy(): void {
@@ -59,9 +62,24 @@ export default class NBodySimulation implements Experiment {
         this.camera.updateProjectionMatrix();
     }
 
+    private randomVector(radius: number): Vector3 {
+        const x = Math.random() * 2 * radius - radius;
+        const y = Math.random() * 2 * radius - radius;
+        const z = Math.random() * 2 * radius - radius;
+        return new Vector3(x, y, z);
+    }
+
     private updateWorld(dt: number): void {
-        if (!this.running) {
-            return;
+        for (const body of this.bodies) {
+            const others = this.bodies.filter((other) => other !== body);
+            const forces = others.map((other) => body.gravitationalAttractionTo(other));
+            const resultantForce = forces.reduce((acc, elem) => acc.add(elem), new Vector3());
+
+            body.acceleration = resultantForce.divideScalar(body.mass);
+        }
+
+        for (const body of this.bodies) {
+            body.update(dt);
         }
     }
 
@@ -85,6 +103,7 @@ export default class NBodySimulation implements Experiment {
         const fov = this.camera.fov * (Math.PI / 180);
         const cameraZ = Math.abs(maxDim / 4 * Math.tan(fov * 2));
 
+        this.camera.position = centre;
         this.camera.position.z = cameraZ * offset;
 
         const minZ = boundingBox.min.z;
@@ -97,6 +116,8 @@ export default class NBodySimulation implements Experiment {
     }
 }
 
+const G = 6.67408e-11;
+
 // tslint:disable-next-line: max-classes-per-file
 class Body {
     private static readonly DefaultRadius = 10.0;
@@ -105,10 +126,12 @@ class Body {
     public velocity: Vector3 = new Vector3();
     public acceleration: Vector3 = new Vector3();
     public mesh: Mesh;
+    private radius: number;
+    private readonly density: number = 1.0;
 
-    public constructor(material: Material, radius?: number) {
-
-        const ball = new SphereGeometry(radius || Body.DefaultRadius, Body.SegmentCount, Body.SegmentCount);
+    public constructor(material: Material, radius: number = Body.DefaultRadius) {
+        this.radius = radius;
+        const ball = new SphereGeometry(this.radius, Body.SegmentCount, Body.SegmentCount);
         this.mesh = new Mesh(ball, material);
     }
 
@@ -117,6 +140,32 @@ class Body {
     }
 
     public set centre(value: Vector3) {
-        this.mesh.position = value;
+        this.mesh.position.set(value.x, value.y, value.z);
+    }
+
+    public get mass(): number {
+        const volume = 4 / 3 * Math.PI * this.radius ** 3;
+        return volume * this.density;
+    }
+
+    /**
+     * The resultant force felt due to the other body's gravitational
+     * attraction.
+     * @param other The other body.
+     */
+    public gravitationalAttractionTo(other: Body): Vector3 {
+        const direction = other.centre.sub(this.centre);
+        const radius = Math.max(direction.length(), this.radius, other.radius);
+        const magnitude = G * this.mass * other.mass / radius ** 2;
+
+        return direction.divideScalar(radius).multiplyScalar(magnitude);
+    }
+
+    public update(dt: number): void {
+        const deltaV = this.acceleration.multiplyScalar(dt);
+        this.velocity = this.velocity.add(deltaV);
+
+        const moved = this.velocity.multiplyScalar(dt);
+        this.centre = this.centre.add(moved);
     }
 }
