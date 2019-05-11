@@ -1,2 +1,4 @@
 website-server
 node_modules/
+website
+*.sqlite
