@@ -43,6 +43,8 @@ func (a args) initializeLogging() *zap.Logger {
 		log.Fatalf("Unable to initialize the logger: %v", err)
 	}
 
+	zap.RedirectStdLog(logger)
+
 	return logger
 }
 
@@ -54,11 +56,26 @@ func (a args) openDatabase() (*sql.DB, error) {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = applyMigrations(db); err != nil {
 		return nil, err
 	}
 
 	return db, nil
+}
+
+func applyMigrations(db *sql.DB) error {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS users(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			password_hash TEXT NOT NULL,
+			created_at DATETIME
+		)
+	`)
+
+	// make sure there's always a default admin account
+
+	return err
 }
 
 func (a args) bindAddress() string {
